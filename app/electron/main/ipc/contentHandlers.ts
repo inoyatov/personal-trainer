@@ -74,4 +74,22 @@ export function registerContentHandlers(
       return contentRepo.getGrammarPatternsByLesson(lessonId);
     },
   );
+
+  ipcMain.handle(Channels.CONTENT_DELETE_COURSE, (_event, data: unknown) => {
+    const { courseId } = (data as any);
+    courseRepo.deleteCourse(courseId);
+    return { success: true };
+  });
+
+  ipcMain.handle(Channels.CONTENT_DELETE_MODULE, (_event, data: unknown) => {
+    const { moduleId } = (data as any);
+    courseRepo.deleteModule(moduleId);
+    return { success: true };
+  });
+
+  ipcMain.handle(Channels.CONTENT_DELETE_LESSON, (_event, data: unknown) => {
+    const { lessonId } = (data as any);
+    courseRepo.deleteLesson(lessonId);
+    return { success: true };
+  });
 }

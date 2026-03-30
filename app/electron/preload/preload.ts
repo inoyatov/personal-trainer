@@ -19,6 +19,12 @@ const api = {
       ipcRenderer.invoke('content:getDialogTurns', { dialogId }),
     getGrammarPatterns: (lessonId: string) =>
       ipcRenderer.invoke('content:getGrammarPatterns', { lessonId }),
+    deleteCourse: (courseId: string) =>
+      ipcRenderer.invoke('content:deleteCourse', { courseId }),
+    deleteModule: (moduleId: string) =>
+      ipcRenderer.invoke('content:deleteModule', { moduleId }),
+    deleteLesson: (lessonId: string) =>
+      ipcRenderer.invoke('content:deleteLesson', { lessonId }),
   },
 
   session: {

@@ -10,6 +10,9 @@ export const Channels = {
   CONTENT_GET_DIALOGS: 'content:getDialogs',
   CONTENT_GET_DIALOG_TURNS: 'content:getDialogTurns',
   CONTENT_GET_GRAMMAR_PATTERNS: 'content:getGrammarPatterns',
+  CONTENT_DELETE_COURSE: 'content:deleteCourse',
+  CONTENT_DELETE_MODULE: 'content:deleteModule',
+  CONTENT_DELETE_LESSON: 'content:deleteLesson',
 
   // Session
   SESSION_CREATE: 'session:create',

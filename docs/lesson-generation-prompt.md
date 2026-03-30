@@ -8,6 +8,27 @@ The app supports two JSON formats:
 1. **Course Pack** — a full course with modules and lessons
 2. **Lesson Pack** — a single lesson that can be imported into an existing module
 
+### Exercise Types Generated from Content
+
+The app automatically generates these exercise types from your content:
+
+| Exercise | Source | How It Works |
+|----------|--------|-------------|
+| **Multiple-choice gap-fill** | Sentences + vocabulary | Blanks a vocabulary word in a sentence, offers 4 options |
+| **Typed gap-fill** | Sentences + vocabulary | Same blank, user types the answer (with typo tolerance) |
+| **Word order** | Sentences | Scrambles sentence words, user clicks to reorder |
+| **Dialog completion** | Dialog turns | Blanks a keyword in a dialog turn, shows prior turns as context |
+| **Guided writing** | Writing prompts | Free-text writing with keyword/pattern feedback |
+
+### Study Modes
+
+Users can choose study intensity:
+- **Low Energy** (5-10 min): MC only, 8 exercises, no new items
+- **Normal** (15-20 min): MC + typed + dialog, 15 exercises
+- **Deep** (30+ min): All types including word order, 25 exercises
+
+More varied content = better exercise variety across all modes.
+
 ---
 
 ## Format 1: Lesson Pack (Single Lesson)
@@ -147,10 +168,15 @@ Each vocabulary item represents a single Dutch word or expression.
 - Mix nouns (with articles), verbs, and adjectives
 - Include common A2-level words relevant to the topic
 - The `lemma` MUST appear exactly (case-insensitive) in at least one sentence for exercises to work
+- Distractors for MC exercises are automatically selected from other vocabulary items in the same lesson (preferring same part of speech), so include enough variety
 
 ### Sentences
 
-Each sentence demonstrates vocabulary in context. The app creates gap-fill exercises by finding vocabulary words in sentences and blanking them out.
+Each sentence demonstrates vocabulary in context. The app creates **three** exercise types from sentences:
+
+1. **Gap-fill** (MC and typed): blanks a vocabulary word, user selects or types it
+2. **Word order**: scrambles sentence words, user clicks to reorder them
+3. **Review exercises**: due sentences are used for review gap-fill sessions
 
 ```json
 {
@@ -173,9 +199,10 @@ Each sentence demonstrates vocabulary in context. The app creates gap-fill exerc
 **CRITICAL RULES:**
 1. **Every sentence MUST contain at least one vocabulary lemma as a whole word.** The app uses `\bword\b` regex matching. If the lemma is "brood", the sentence must contain "brood" as a standalone word (not inside another word).
 2. **Every vocabulary item SHOULD appear in at least one sentence.** Otherwise it won't generate exercises.
-3. Aim for **4-8 sentences** per lesson.
+3. Aim for **6-10 sentences** per lesson (more sentences = more word order exercises in Deep mode).
 4. Keep sentences at A2 level: short, clear, practical.
 5. Use realistic daily-life scenarios relevant to the Dutch naturalization exam.
+6. **For word order exercises**: sentences with 4-8 words work best. Very short sentences (< 3 words) are skipped.
 
 **Example of correct matching:**
 - Vocab lemma: `brood` → Sentence: "Ik wil graag een **brood** kopen." ✅
@@ -188,7 +215,7 @@ Each sentence demonstrates vocabulary in context. The app creates gap-fill exerc
 
 ### Dialogs
 
-Dialogs are short conversations (4-8 turns) that model real-life Dutch interactions.
+Dialogs are short conversations (4-8 turns) that model real-life Dutch interactions. The app creates **dialog completion exercises** by blanking a keyword from a turn and showing prior turns as context in a chat-bubble UI.
 
 ```json
 {
@@ -202,7 +229,7 @@ Dialogs are short conversations (4-8 turns) that model real-life Dutch interacti
 
 ### Dialog Turns
 
-Each turn is one speaker's line in a dialog. The app creates exercises by blanking out a keyword from a turn and showing prior turns as context.
+Each turn is one speaker's line in a dialog.
 
 ```json
 {
@@ -219,16 +246,17 @@ Each turn is one speaker's line in a dialog. The app creates exercises by blanki
 |-------|------|----------|-------------|
 | `id` | string | yes | Unique ID |
 | `dialogId` | string | yes | Must match the dialog ID |
-| `speaker` | string | yes | Speaker name/role (e.g., "Dokter", "Patiënt", "Verkoper", "Klant") |
+| `speaker` | string | yes | Speaker name/role (e.g., "Dokter", "Patient", "Verkoper", "Klant") |
 | `text` | string | yes | The Dutch text of this turn. Should contain content words (3+ letters) for gap-fill. |
 | `translation` | string | yes | English translation |
 | `orderIndex` | number | yes | 0-based turn order |
 
 **Guidelines:**
 - Use **2 speakers** per dialog
-- **4-6 turns** is ideal
+- **4-6 turns** is ideal (the app generates up to 3 exercises per dialog)
 - The first turn (orderIndex: 0) is context-only and won't be used for exercises
-- Use content words (nouns, verbs, adjectives of 3+ letters) in turns — very short function words (de, het, ik, je, en, of) are automatically skipped
+- Use content words (nouns, verbs, adjectives of 3+ letters) in turns — short function words (de, het, ik, je, en, of, in, op, is, dat, er, ja, nee, met, van, voor, naar, aan, om, al, ook, nog, maar, dan, wel, niet, kan, dit, die, wat, hoe) are automatically skipped when selecting a target word
+- **Longer content words** are preferred as targets — the app picks the longest content words first
 - Make the dialog realistic and exam-relevant
 
 ### Grammar Patterns (optional)
@@ -246,7 +274,9 @@ Each turn is one speaker's line in a dialog. The app creates exercises by blanki
 
 Note: `examples` is a **JSON string** containing a JSON array, not a raw array.
 
-### Writing Prompts (optional)
+### Writing Prompts (optional but recommended)
+
+Writing prompts enable the Writing Lab feature. The app evaluates submissions using 7 heuristic checks: non-empty, minimum length (5+ words), capitalization, punctuation, keyword coverage (>=50%), target pattern usage, and sentence structure.
 
 ```json
 {
@@ -259,7 +289,20 @@ Note: `examples` is a **JSON string** containing a JSON array, not a raw array.
 }
 ```
 
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `promptText` | string | yes | The writing task in English. Should ask for 2-4 sentences. |
+| `targetPatterns` | JSON string | no | Sentence patterns the learner should try to use. Array of strings. |
+| `expectedKeywords` | JSON string | no | Dutch words the learner should include. 3-6 keywords is ideal. More keywords = stricter scoring. |
+| `difficulty` | number | no | 1.0 = easy, 2.0 = hard. Default: 1.0 |
+
 Note: `targetPatterns` and `expectedKeywords` are **JSON strings** containing JSON arrays.
+
+**Writing prompt tips:**
+- A2-level tasks: simple email, short message, form response, excuse/explanation, invitation
+- Include 3-6 expected keywords that a good answer would naturally contain
+- Include 1-3 target patterns (sentence starters or chunks)
+- Lessons with writing prompts require a writing submission for lesson completion
 
 ---
 
@@ -310,6 +353,13 @@ Here is a complete, valid lesson pack for the topic "At the pharmacy":
       "type": "dialog",
       "title": "Dialoog",
       "orderIndex": 1
+    },
+    {
+      "id": "cg-apotheek-writing",
+      "lessonId": "les-apotheek",
+      "type": "writing",
+      "title": "Schrijven",
+      "orderIndex": 2
     }
   ],
   "vocabulary": [
@@ -402,6 +452,20 @@ Here is a complete, valid lesson pack for the topic "At the pharmacy":
       "translation": "You must swallow a tablet three times a day.",
       "lessonId": "les-apotheek",
       "classGroupId": "cg-apotheek-vocab"
+    },
+    {
+      "id": "s-apotheek-5",
+      "text": "Dit medicijn is zonder recept verkrijgbaar.",
+      "translation": "This medicine is available without a prescription.",
+      "lessonId": "les-apotheek",
+      "classGroupId": "cg-apotheek-vocab"
+    },
+    {
+      "id": "s-apotheek-6",
+      "text": "De apotheek is open van negen tot vijf.",
+      "translation": "The pharmacy is open from nine to five.",
+      "lessonId": "les-apotheek",
+      "classGroupId": "cg-apotheek-vocab"
     }
   ],
   "dialogs": [
@@ -456,7 +520,16 @@ Here is a complete, valid lesson pack for the topic "At the pharmacy":
     }
   ],
   "grammarPatterns": [],
-  "writingPrompts": []
+  "writingPrompts": [
+    {
+      "id": "wp-apotheek",
+      "lessonId": "les-apotheek",
+      "promptText": "Write a short message to your teacher. Say that you are sick, you went to the pharmacy, and you have medicine. Say when you will come back to class.",
+      "targetPatterns": "[\"Ik ben ziek\", \"Ik heb medicijn\", \"Ik kom\"]",
+      "expectedKeywords": "[\"ziek\", \"apotheek\", \"medicijn\", \"dokter\", \"komen\", \"morgen\"]",
+      "difficulty": 1.2
+    }
+  ]
 }
 ```
 
@@ -476,6 +549,9 @@ Before using the generated JSON:
 - [ ] Translations are accurate
 - [ ] Articles (de/het) are correct for Dutch nouns
 - [ ] The JSON is valid (no trailing commas, proper quoting)
+- [ ] At least 6 sentences (for word order exercise variety)
+- [ ] Dialog has 4+ turns with content words (for dialog completion exercises)
+- [ ] Writing prompt includes expectedKeywords and targetPatterns
 
 ---
 
@@ -537,14 +613,16 @@ Generate a Dutch A2 lesson pack in JSON format for the topic "[TOPIC]".
 
 Follow these rules exactly:
 1. Create 6-10 vocabulary items with correct de/het articles
-2. Create 4-8 sentences where EACH sentence contains at least one vocabulary lemma as an exact whole word
-3. Create one dialog with 4-6 turns between two speakers
-4. Use the exact JSON structure from the specification
-5. All IDs must be unique using the pattern: v-{topic}-{n}, s-{topic}-{n}, etc.
-6. Keep all Dutch text at A2 level
-7. Every vocabulary lemma must appear in at least one sentence
-8. Set classGroupId references correctly
-9. Output ONLY the JSON, no explanation
+2. Create 6-10 sentences where EACH sentence contains at least one vocabulary lemma as an exact whole word (sentences should be 4-8 words for word order exercises)
+3. Create one dialog with 4-6 turns between two speakers (use longer content words in dialog turns)
+4. Create one writing prompt with 3-6 expectedKeywords and 1-3 targetPatterns
+5. Use the exact JSON structure from the specification
+6. All IDs must be unique using the pattern: v-{topic}-{n}, s-{topic}-{n}, etc.
+7. Keep all Dutch text at A2 level
+8. Every vocabulary lemma must appear in at least one sentence
+9. Set classGroupId references correctly
+10. Include a writing classGroup with a writing prompt
+11. Output ONLY the JSON, no explanation
 
 Topic: [TOPIC]
 Lesson ID prefix: les-[topic-slug]

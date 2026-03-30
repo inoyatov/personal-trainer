@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { PageHeader } from '../components/common/PageHeader';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { EmptyState } from '../components/common/EmptyState';
 import { ErrorMessage } from '../components/common/ErrorMessage';
-import { LessonCard } from '../components/content/LessonCard';
+import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { useModules, useLessons } from '../hooks/useContentQueries';
 import { api } from '../lib/api';
 
@@ -22,7 +22,17 @@ export function ModulePage() {
     message: string;
   } | null>(null);
 
+  const navigate = useNavigate();
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+
   const mod = modules?.find((m: any) => m.id === moduleId);
+
+  const handleDeleteLesson = async () => {
+    if (!deleteTarget) return;
+    await api.content.deleteLesson(deleteTarget.id);
+    queryClient.invalidateQueries({ queryKey: ['lessons', moduleId] });
+    setDeleteTarget(null);
+  };
 
   const handleImportLesson = async () => {
     if (!moduleId) return;
@@ -105,16 +115,45 @@ export function ModulePage() {
       {lessons && lessons.length > 0 && (
         <div className="space-y-2">
           {lessons.map((lesson: any) => (
-            <LessonCard
-              key={lesson.id}
-              id={lesson.id}
-              title={lesson.title}
-              description={lesson.description}
-              estimatedMinutes={lesson.estimatedMinutes}
-              orderIndex={lesson.orderIndex}
-            />
+            <div key={lesson.id} className="relative">
+              <button
+                onClick={() => navigate(`/lessons/${lesson.id}`)}
+                className="flex w-full items-start gap-4 rounded-lg border p-4 text-left transition-colors"
+                style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}
+              >
+                <span
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+                  style={{ backgroundColor: 'var(--color-badge-green)', color: 'var(--color-badge-green-text)' }}
+                >
+                  {lesson.orderIndex + 1}
+                </span>
+                <div className="flex-1">
+                  <h4 className="font-medium" style={{ color: 'var(--color-text-primary)' }}>{lesson.title}</h4>
+                  {lesson.description && (
+                    <p className="mt-0.5 text-sm" style={{ color: 'var(--color-text-secondary)' }}>{lesson.description}</p>
+                  )}
+                  <p className="mt-1 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>~{lesson.estimatedMinutes} min</p>
+                </div>
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: lesson.id, title: lesson.title }); }}
+                className="absolute right-2 top-2 rounded px-1.5 py-1 text-sm opacity-60 hover:opacity-100 transition-opacity"
+                title="Delete lesson"
+              >
+                🗑
+              </button>
+            </div>
           ))}
         </div>
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Delete Lesson"
+          message={`Delete "${deleteTarget.title}" and all its content? This cannot be undone.`}
+          onConfirm={handleDeleteLesson}
+          onCancel={() => setDeleteTarget(null)}
+        />
       )}
     </div>
   );

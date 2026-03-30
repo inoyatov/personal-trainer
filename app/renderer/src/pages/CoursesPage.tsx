@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { PageHeader } from '../components/common/PageHeader';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { EmptyState } from '../components/common/EmptyState';
@@ -15,6 +16,19 @@ export function CoursesPage() {
     type: 'success' | 'error';
     message: string;
   } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+
+  const handleDeleteCourse = async () => {
+    if (!deleteTarget) return;
+    try {
+      await api.content.deleteCourse(deleteTarget.id);
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      setImportStatus({ type: 'success', message: `Deleted "${deleteTarget.title}"` });
+    } catch (err: any) {
+      setImportStatus({ type: 'error', message: err.message });
+    }
+    setDeleteTarget(null);
+  };
 
   const handleImport = async () => {
     setImportStatus(null);
@@ -122,19 +136,33 @@ export function CoursesPage() {
                 targetLevel={course.targetLevel}
                 languageCode={course.languageCode}
               />
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleExport(course.id);
-                }}
-                className="absolute right-2 top-2 rounded px-2 py-1 text-xs"
-                style={{ backgroundColor: 'var(--color-bg-tertiary)', color: 'var(--color-text-secondary)' }}
-              >
-                Export
-              </button>
+              <div className="absolute right-2 top-2 flex gap-1">
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleExport(course.id); }}
+                  className="rounded px-2 py-1 text-xs"
+                  style={{ backgroundColor: 'var(--color-bg-tertiary)', color: 'var(--color-text-secondary)' }}
+                >
+                  Export
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: course.id, title: course.title }); }}
+                  className="rounded px-1.5 py-1 text-sm opacity-60 hover:opacity-100 transition-opacity"
+                  title="Delete course"
+                >
+                  🗑
+                </button>
+              </div>
             </div>
           ))}
         </div>
+      )}
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Delete Course"
+          message={`Are you sure you want to delete "${deleteTarget.title}"? This will delete all modules, lessons, and content inside it. This cannot be undone.`}
+          onConfirm={handleDeleteCourse}
+          onCancel={() => setDeleteTarget(null)}
+        />
       )}
     </div>
   );

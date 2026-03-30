@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { PageHeader } from '../components/common/PageHeader';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { EmptyState } from '../components/common/EmptyState';
@@ -9,10 +11,13 @@ import { VocabularyList } from '../components/content/VocabularyList';
 import { SentenceList } from '../components/content/SentenceList';
 import { useLessonContent, useVocabulary } from '../hooks/useContentQueries';
 import { SessionModeSelector, type SessionModeId } from '../features/study/components/SessionModeSelector';
+import { api } from '../lib/api';
 
 export function LessonPage() {
   const { lessonId } = useParams<{ lessonId: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { data, isLoading, error } = useLessonContent(lessonId);
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
 
@@ -37,11 +42,26 @@ export function LessonPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <PageHeader
-        title={data.lesson.title}
-        subtitle={`${data.lesson.description} (~${data.lesson.estimatedMinutes} min)`}
-        backTo="/courses"
-      />
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <button onClick={() => navigate(-1)} className="mb-2 text-sm" style={{ color: 'var(--color-accent)' }}>
+            &larr; Back
+          </button>
+          <h2 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
+            {data.lesson.title}
+          </h2>
+          <p className="mt-1 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+            {data.lesson.description} (~{data.lesson.estimatedMinutes} min)
+          </p>
+        </div>
+        <button
+          onClick={() => setShowDeleteConfirm(true)}
+          className="shrink-0 rounded px-2 py-1 text-sm opacity-60 hover:opacity-100 transition-opacity"
+          title="Delete lesson"
+        >
+          🗑
+        </button>
+      </div>
 
       {data.classGroups?.length > 0 && (
         <div className="mb-6">
@@ -85,6 +105,19 @@ export function LessonPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          title="Delete Lesson"
+          message={`Delete "${data.lesson.title}" and all its content? This cannot be undone.`}
+          onConfirm={async () => {
+            await api.content.deleteLesson(lessonId!);
+            queryClient.invalidateQueries();
+            navigate(-1);
+          }}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
       )}
     </div>
   );
