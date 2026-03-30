@@ -7,8 +7,12 @@ import {
   getAllReviewStatesRequest,
 } from '../../../shared/contracts/schemas';
 import type { ReviewRepository } from '../../../backend/db/repositories/reviewRepository';
+import type { ContentRepository } from '../../../backend/db/repositories/contentRepository';
 
-export function registerReviewHandlers(reviewRepo: ReviewRepository) {
+export function registerReviewHandlers(
+  reviewRepo: ReviewRepository,
+  contentRepo: ContentRepository,
+) {
   ipcMain.handle(Channels.REVIEW_GET_DUE_ITEMS, (_event, data: unknown) => {
     const { userId } = getDueItemsRequest.parse(data ?? {});
     return reviewRepo.getDueItems(userId);
@@ -32,4 +36,24 @@ export function registerReviewHandlers(reviewRepo: ReviewRepository) {
       return reviewRepo.getAllReviewStates(userId);
     },
   );
+
+  ipcMain.handle(Channels.REVIEW_GET_EXERCISES, (_event, data: unknown) => {
+    const { userId } = getDueItemsRequest.parse(data ?? {});
+    const dueItems = reviewRepo.getDueItems(userId);
+
+    const sentences: any[] = [];
+    const seenIds = new Set<string>();
+
+    for (const item of dueItems) {
+      if (seenIds.has(item.entityId)) continue;
+      seenIds.add(item.entityId);
+
+      const sentence = contentRepo.getSentenceById(item.entityId);
+      if (sentence) {
+        sentences.push(sentence);
+      }
+    }
+
+    return { sentences, dueItemCount: dueItems.length };
+  });
 }

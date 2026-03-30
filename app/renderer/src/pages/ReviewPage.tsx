@@ -78,11 +78,7 @@ export function ReviewPage() {
           {/* Start review button */}
           <div className="mb-6">
             <button
-              onClick={() => {
-                // TODO: Launch review session with due items
-                // For now, navigate to courses to pick a lesson
-                navigate('/courses');
-              }}
+              onClick={() => navigate('/review/study')}
               className="rounded-lg px-6 py-3 text-sm font-medium"
               style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-inverse)' }}
             >

@@ -24,7 +24,7 @@ export function registerAllHandlers(db: AppDatabase) {
 
   registerContentHandlers(courseRepo, contentRepo);
   registerSessionHandlers(sessionRepo, reviewScheduler);
-  registerReviewHandlers(reviewRepo);
+  registerReviewHandlers(reviewRepo, contentRepo);
   registerWritingHandlers(writingRepo);
   registerDashboardHandlers(dashboardService);
   registerImportExportHandlers(db);

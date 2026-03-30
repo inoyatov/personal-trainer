@@ -28,6 +28,7 @@ export const Channels = {
   REVIEW_GET_STATE: 'review:getState',
   REVIEW_UPDATE_STATE: 'review:updateState',
   REVIEW_GET_ALL_STATES: 'review:getAllStates',
+  REVIEW_GET_EXERCISES: 'review:getExercises',
 
   // Writing
   WRITING_GET_PROMPTS: 'writing:getPrompts',

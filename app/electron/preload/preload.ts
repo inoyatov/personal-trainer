@@ -79,6 +79,8 @@ const api = {
     }) => ipcRenderer.invoke('review:updateState', data),
     getAllStates: (userId?: string) =>
       ipcRenderer.invoke('review:getAllStates', { userId }),
+    getExercises: (userId?: string) =>
+      ipcRenderer.invoke('review:getExercises', { userId }),
   },
 
   writing: {

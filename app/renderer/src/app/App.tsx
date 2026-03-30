@@ -9,6 +9,7 @@ import { ModulePage } from '../pages/ModulePage';
 import { LessonPage } from '../pages/LessonPage';
 import { StudyPage } from '../pages/StudyPage';
 import { ReviewPage } from '../pages/ReviewPage';
+import { ReviewStudyPage } from '../pages/ReviewStudyPage';
 import { WritingLabPage } from '../pages/WritingLabPage';
 import { ProgressPage } from '../pages/ProgressPage';
 import { SettingsPage } from '../pages/SettingsPage';
@@ -49,6 +50,7 @@ export function App() {
             <Route path="/lessons/:lessonId" element={<LessonPage />} />
             <Route path="/study/:lessonId" element={<StudyPage />} />
             <Route path="/review" element={<ReviewPage />} />
+            <Route path="/review/study" element={<ReviewStudyPage />} />
             <Route path="/writing" element={<WritingLabPage />} />
             <Route path="/progress" element={<ProgressPage />} />
             <Route path="/settings" element={<SettingsPage />} />
