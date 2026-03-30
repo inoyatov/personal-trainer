@@ -125,7 +125,13 @@ export function runMigrations(db: AppDatabase) {
     success_count INTEGER NOT NULL DEFAULT 0,
     fail_count INTEGER NOT NULL DEFAULT 0,
     average_latency_ms REAL NOT NULL DEFAULT 0,
-    current_stage TEXT NOT NULL DEFAULT 'new' CHECK(current_stage IN ('new', 'seen', 'recognized', 'recalled', 'stable', 'automated'))
+    current_stage TEXT NOT NULL DEFAULT 'new' CHECK(current_stage IN ('new', 'seen', 'recognized', 'recalled', 'stable', 'automated')),
+    learning_step TEXT NOT NULL DEFAULT 'RECOGNITION',
+    recognition_mastery REAL NOT NULL DEFAULT 0,
+    recall_mastery REAL NOT NULL DEFAULT 0,
+    transfer_mastery REAL NOT NULL DEFAULT 0,
+    consecutive_correct INTEGER NOT NULL DEFAULT 0,
+    consecutive_incorrect INTEGER NOT NULL DEFAULT 0
   )`);
 
   db.run(sql`CREATE TABLE IF NOT EXISTS sessions (
@@ -147,7 +153,9 @@ export function runMigrations(db: AppDatabase) {
     is_correct INTEGER NOT NULL,
     response_time_ms INTEGER NOT NULL DEFAULT 0,
     hint_used INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    confidence INTEGER NOT NULL DEFAULT 1,
+    attempt_count INTEGER NOT NULL DEFAULT 1
   )`);
 
   db.run(sql`CREATE TABLE IF NOT EXISTS writing_prompts (

@@ -8,6 +8,7 @@ import { ClassGroupTabs } from '../components/content/ClassGroupTabs';
 import { VocabularyList } from '../components/content/VocabularyList';
 import { SentenceList } from '../components/content/SentenceList';
 import { useLessonContent, useVocabulary } from '../hooks/useContentQueries';
+import { SessionModeSelector, type SessionModeId } from '../features/study/components/SessionModeSelector';
 
 export function LessonPage() {
   const { lessonId } = useParams<{ lessonId: string }>();
@@ -49,13 +50,9 @@ export function LessonPage() {
       )}
 
       <div className="mb-6">
-        <button
-          onClick={() => navigate(`/study/${lessonId}`)}
-          className="rounded-lg px-6 py-2.5 text-sm font-medium transition-colors"
-          style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-inverse)' }}
-        >
-          Start Studying
-        </button>
+        <SessionModeSelector
+          onSelect={(mode: SessionModeId) => navigate(`/study/${lessonId}?mode=${mode}`)}
+        />
       </div>
 
       {activeGroup?.type === 'vocabulary' && vocabulary && <VocabularyList items={vocabulary} />}

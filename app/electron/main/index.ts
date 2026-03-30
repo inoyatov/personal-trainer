@@ -1,10 +1,13 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
+import fs from 'node:fs';
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import started from 'electron-squirrel-startup';
 import * as schema from '../../backend/db/schema';
-import { runMigrations } from '../../backend/db/migrate';
+import { runMigrations as runBaseMigrations } from '../../backend/db/migrate';
+import { runMigrations as runSchemaMigrations } from '../../backend/db/migrations/migrationRunner';
+import { allMigrations } from '../../backend/db/migrations/scripts';
 import { registerAllHandlers } from './ipc/registerAll';
 import { seedIfEmpty } from '../../backend/db/seed';
 
@@ -17,7 +20,6 @@ const isDev = !!MAIN_WINDOW_VITE_DEV_SERVER_URL;
 function getAppDataDir(): string {
   const homeDir = app.getPath('home');
   const appDir = path.join(homeDir, '.personal-trainer');
-  const fs = require('fs');
   if (!fs.existsSync(appDir)) {
     fs.mkdirSync(appDir, { recursive: true });
   }
@@ -27,11 +29,22 @@ function getAppDataDir(): string {
 function initializeDatabase() {
   const appDir = getAppDataDir();
   const dbPath = path.join(appDir, 'personal-trainer.db');
+  const backupDir = path.join(appDir, 'backups');
   const sqliteDb = new Database(dbPath);
   sqliteDb.pragma('journal_mode = WAL');
   sqliteDb.pragma('foreign_keys = ON');
   const db = drizzle(sqliteDb, { schema });
-  runMigrations(db);
+
+  // Step 1: Run base CREATE TABLE migrations (idempotent)
+  runBaseMigrations(db);
+
+  // Step 2: Run versioned schema migrations (v2+)
+  runSchemaMigrations(sqliteDb, allMigrations, {
+    dbPath,
+    backupDir,
+    appVersion: app.getVersion(),
+  });
+
   return db;
 }
 
@@ -49,7 +62,6 @@ const createWindow = () => {
     },
   });
 
-  // Only set strict CSP in production — in dev, Vite needs to load scripts
   if (!isDev) {
     mainWindow.webContents.session.webRequest.onHeadersReceived(
       (details, callback) => {
@@ -79,13 +91,11 @@ const createWindow = () => {
 };
 
 function initializeContentPacks() {
-  const fs = require('fs');
   const appDir = getAppDataDir();
   const packsDir = path.join(appDir, 'content-packs');
   if (!fs.existsSync(packsDir)) {
     fs.mkdirSync(packsDir, { recursive: true });
   }
-  // Copy sample packs on first run
   const readmeFile = path.join(packsDir, 'README.txt');
   if (!fs.existsSync(readmeFile)) {
     fs.writeFileSync(

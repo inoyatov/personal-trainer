@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 
 export interface StudyExercise {
-  exerciseType: 'multiple-choice-gap-fill' | 'typed-gap-fill' | 'dialog-completion';
+  exerciseType: 'multiple-choice-gap-fill' | 'typed-gap-fill' | 'dialog-completion' | 'word-order';
   sourceEntityType: string;
   sourceEntityId: string;
   renderedPrompt: string;
@@ -16,6 +16,10 @@ export interface StudyExercise {
   dialogContextTurns?: Array<{ speaker: string; text: string; isTarget: boolean }>;
   /** Dialog only */
   dialogMode?: 'mc' | 'typed';
+  /** Word order only */
+  shuffledTokens?: string[];
+  /** Word order only */
+  correctTokens?: string[];
 }
 
 export interface AnswerRecord {

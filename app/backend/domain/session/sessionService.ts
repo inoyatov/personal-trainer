@@ -13,6 +13,7 @@ export interface CreateSessionInput {
 export interface SubmitAnswerInput {
   sessionId: string;
   exerciseInstanceId: string;
+  exerciseType?: string;
   userAnswer: string;
   isCorrect: boolean;
   responseTimeMs: number;
@@ -80,6 +81,7 @@ export function createSessionService(
           userId: session?.userId ?? 'default',
           entityType: 'sentence',
           entityId: input.exerciseInstanceId,
+          exerciseType: input.exerciseType ?? 'multiple-choice-gap-fill',
           answer: {
             isCorrect: input.isCorrect,
             responseTimeMs: input.responseTimeMs,

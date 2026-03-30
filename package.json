@@ -1,7 +1,7 @@
 {
   "name": "personal-trainer",
   "productName": "Personal Trainer",
-  "version": "0.1.0",
+  "version": "2.0.0",
   "description": "Desktop application for Dutch naturalization exam preparation",
   "main": ".vite/build/index.js",
   "private": true,

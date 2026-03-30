@@ -5,6 +5,7 @@ import { useDashboardStats, useRecentSessions } from '../hooks/useDashboardQueri
 import { useAllReviewStates } from '../hooks/useReviewQueries';
 import { PageHeader } from '../components/common/PageHeader';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { generateCompetenceSignals, type ProgressSnapshot } from '../../../backend/domain/progress/competenceSignals';
 
 const stageLabels: Record<string, string> = {
   new: 'New',
@@ -54,6 +55,46 @@ export function ProgressPage() {
   return (
     <div className="mx-auto max-w-4xl">
       <PageHeader title="Progress" subtitle="Track your learning journey" backTo="/" />
+
+      {/* Competence signals */}
+      {(() => {
+        const snapshot: ProgressSnapshot = {
+          totalItemsLearned: stats?.totalItemsLearned ?? 0,
+          totalSessions: stats?.totalSessions ?? 0,
+          todayAccuracy: stats?.todayAccuracy ?? 0,
+          reviewStates: (reviewStates as any[]) ?? [],
+          lessonCompletions: [],
+        };
+        const signals = generateCompetenceSignals(snapshot);
+        if (signals.length === 0) return null;
+        return (
+          <div className="mb-6 space-y-2">
+            {signals.slice(0, 3).map((signal, i) => (
+              <div
+                key={i}
+                className="rounded-lg border px-4 py-3 text-sm"
+                style={{
+                  backgroundColor: signal.category === 'milestone'
+                    ? 'var(--color-success-light)'
+                    : signal.category === 'strength'
+                      ? 'var(--color-badge-blue)'
+                      : 'var(--color-accent-light)',
+                  borderColor: signal.category === 'milestone'
+                    ? 'var(--color-success)'
+                    : 'var(--color-border)',
+                  color: signal.category === 'milestone'
+                    ? 'var(--color-success-text)'
+                    : signal.category === 'strength'
+                      ? 'var(--color-badge-blue-text)'
+                      : 'var(--color-accent-text)',
+                }}
+              >
+                {signal.message}
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* Overview stats */}
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">

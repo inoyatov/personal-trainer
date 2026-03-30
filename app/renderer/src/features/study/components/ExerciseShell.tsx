@@ -83,15 +83,47 @@ export function ExerciseShell({
 }
 
 function formatPrompt(prompt: string): React.ReactNode {
-  const parts = prompt.split('____');
-  if (parts.length < 2) return prompt;
-  return (
-    <>
-      {parts[0]}
-      <span className="mx-1 inline-block min-w-[80px] border-b-2 text-center" style={{ borderColor: 'var(--color-accent)' }}>
-        &nbsp;
-      </span>
-      {parts[1]}
-    </>
-  );
+  // Match both MASKED (____) and LENGTH_HINT (_ _ _ ...) patterns
+  const lengthHintMatch = prompt.match(/(_ )+_/);
+  const maskedMatch = prompt.includes('____');
+
+  if (lengthHintMatch) {
+    const idx = lengthHintMatch.index!;
+    const blank = lengthHintMatch[0];
+    const charCount = blank.split(' ').length;
+    return (
+      <>
+        {prompt.substring(0, idx)}
+        <span
+          className="mx-1 inline-block rounded px-2 py-0.5 font-mono text-lg tracking-[0.3em]"
+          style={{
+            backgroundColor: 'var(--color-accent-light)',
+            color: 'var(--color-accent-text)',
+            borderBottom: '2px solid var(--color-accent)',
+          }}
+        >
+          {blank}
+        </span>
+        <span className="ml-1 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+          ({charCount} letters)
+        </span>
+        {prompt.substring(idx + blank.length)}
+      </>
+    );
+  }
+
+  if (maskedMatch) {
+    const parts = prompt.split('____');
+    return (
+      <>
+        {parts[0]}
+        <span className="mx-1 inline-block min-w-[80px] border-b-2 text-center" style={{ borderColor: 'var(--color-accent)' }}>
+          &nbsp;
+        </span>
+        {parts[1]}
+      </>
+    );
+  }
+
+  return prompt;
 }

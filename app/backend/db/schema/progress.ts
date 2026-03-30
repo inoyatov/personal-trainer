@@ -3,7 +3,7 @@ import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 export const reviewStates = sqliteTable('review_states', {
   id: text('id').primaryKey(),
   userId: text('user_id').notNull().default('default'),
-  entityType: text('entity_type').notNull(), // 'vocabulary' | 'sentence' | 'grammar_pattern'
+  entityType: text('entity_type').notNull(),
   entityId: text('entity_id').notNull(),
   stabilityScore: real('stability_score').notNull().default(0),
   easeScore: real('ease_score').notNull().default(2.5),
@@ -19,6 +19,13 @@ export const reviewStates = sqliteTable('review_states', {
   })
     .notNull()
     .default('new'),
+  // v2 columns
+  learningStep: text('learning_step').notNull().default('RECOGNITION'),
+  recognitionMastery: real('recognition_mastery').notNull().default(0),
+  recallMastery: real('recall_mastery').notNull().default(0),
+  transferMastery: real('transfer_mastery').notNull().default(0),
+  consecutiveCorrect: integer('consecutive_correct').notNull().default(0),
+  consecutiveIncorrect: integer('consecutive_incorrect').notNull().default(0),
 });
 
 export const sessions = sqliteTable('sessions', {
@@ -31,7 +38,7 @@ export const sessions = sqliteTable('sessions', {
   mode: text('mode', {
     enum: ['learn', 'practice', 'review', 'exam-simulation', 'writing-lab'],
   }).notNull(),
-  sourceScope: text('source_scope').notNull().default('{}'), // JSON: { lessonId?, moduleId?, courseId? }
+  sourceScope: text('source_scope').notNull().default('{}'),
   totalQuestions: integer('total_questions').notNull().default(0),
   correctAnswers: integer('correct_answers').notNull().default(0),
 });
@@ -49,4 +56,7 @@ export const sessionAnswers = sqliteTable('session_answers', {
   createdAt: text('created_at')
     .notNull()
     .$defaultFn(() => new Date().toISOString()),
+  // v3 columns
+  confidence: integer('confidence').notNull().default(1),
+  attemptCount: integer('attempt_count').notNull().default(1),
 });

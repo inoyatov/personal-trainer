@@ -2,12 +2,22 @@ import { create } from 'zustand';
 import { getThemeById, applyTheme } from './themes';
 
 const THEME_STORAGE_KEY = 'personal-trainer-theme';
+const GAP_MODE_KEY = 'personal-trainer-gap-mode';
 
 function loadSavedThemeId(): string {
   try {
     return localStorage.getItem(THEME_STORAGE_KEY) ?? 'default-light';
   } catch {
     return 'default-light';
+  }
+}
+
+function loadSavedGapMode(): 'MASKED' | 'LENGTH_HINT' {
+  try {
+    const saved = localStorage.getItem(GAP_MODE_KEY);
+    return saved === 'LENGTH_HINT' ? 'LENGTH_HINT' : 'MASKED';
+  } catch {
+    return 'MASKED';
   }
 }
 
@@ -29,6 +39,9 @@ interface AppState {
 
   themeId: string;
   setTheme: (id: string) => void;
+
+  gapMode: 'MASKED' | 'LENGTH_HINT';
+  setGapMode: (mode: 'MASKED' | 'LENGTH_HINT') => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -56,5 +69,13 @@ export const useAppStore = create<AppState>((set) => ({
       localStorage.setItem(THEME_STORAGE_KEY, id);
     } catch {}
     set({ themeId: id });
+  },
+
+  gapMode: loadSavedGapMode(),
+  setGapMode: (mode) => {
+    try {
+      localStorage.setItem(GAP_MODE_KEY, mode);
+    } catch {}
+    set({ gapMode: mode });
   },
 }));

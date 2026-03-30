@@ -1,4 +1,5 @@
 import type { MasteryStage } from '../../../shared/types';
+import { applyConfidenceToInterval, overconfidencePenalty } from './confidenceModifiers';
 
 /** Interval multipliers in minutes */
 const BASE_INTERVALS: Record<MasteryStage, number> = {
@@ -18,6 +19,7 @@ export interface AnswerQuality {
   isCorrect: boolean;
   responseTimeMs: number;
   hintUsed: boolean;
+  confidence?: 0 | 1 | 2;
 }
 
 export interface IntervalResult {
@@ -77,6 +79,14 @@ export function calculateInterval(
     intervalMinutes = baseInterval * currentEase;
     newEase = Math.min(MAX_EASE, currentEase + 0.1);
   }
+
+  // Apply confidence modifier
+  const confidence = answer.confidence ?? 1;
+  intervalMinutes = applyConfidenceToInterval(intervalMinutes, confidence as 0 | 1 | 2);
+
+  // Apply overconfidence ease penalty
+  newEase += overconfidencePenalty(confidence as 0 | 1 | 2, answer.isCorrect);
+  newEase = Math.max(MIN_EASE, Math.min(MAX_EASE, newEase));
 
   // Clamp interval: minimum 1 minute, maximum 90 days
   intervalMinutes = Math.max(1, Math.min(intervalMinutes, 90 * 1440));

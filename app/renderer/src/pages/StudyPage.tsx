@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useLessonContent, useVocabulary } from '../hooks/useContentQueries';
 import { api } from '../lib/api';
@@ -8,6 +8,8 @@ import { MultipleChoiceExercise } from '../features/study/components/MultipleCho
 import { TypedGapFillExercise } from '../features/study/components/TypedGapFillExercise';
 import { DialogCompletionExercise } from '../features/study/components/DialogCompletionExercise';
 import { SessionSummary } from '../features/study/components/SessionSummary';
+import { ConfidenceWidget } from '../features/study/components/ConfidenceWidget';
+import { FrustrationBanner } from '../features/study/components/FrustrationBanner';
 import {
   useStudySession,
   type StudyExercise,
@@ -15,6 +17,13 @@ import {
 import { useSessionPersistence } from '../features/study/hooks/useSessionPersistence';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { EmptyState } from '../components/common/EmptyState';
+import { WordOrderExercise } from '../features/study/components/WordOrderExercise';
+import { SESSION_MODES, type SessionModeId } from '../../../backend/domain/session/sessionModes';
+import { detectFrustration, frustrationMessage, type AnswerSignal } from '../../../backend/domain/session/frustrationDetector';
+import { tokenizeSentence } from '../../../backend/domain/exercise-generation/wordOrderGenerator';
+import { generateFeedback } from '../../../backend/domain/evaluation/feedbackGenerator';
+import { generateBlank } from '../../../backend/domain/exercise-generation/gapModes';
+import { useAppStore } from '../lib/store';
 
 // --- Exercise generation helpers ---
 
@@ -25,6 +34,7 @@ function escapeRegex(str: string): string {
 function generateGapFillExercises(
   sentences: any[],
   vocabulary: any[],
+  gapMode: 'MASKED' | 'LENGTH_HINT' = 'MASKED',
 ): StudyExercise[] {
   const baseExercises: Array<{
     sentence: any;
@@ -39,12 +49,13 @@ function generateGapFillExercises(
       const match = regex.exec(sentence.text);
       if (!match) continue;
 
+      const blank = generateBlank(match[0], gapMode);
       baseExercises.push({
         sentence,
         vocab,
         prompt:
           sentence.text.substring(0, match.index) +
-          '____' +
+          blank +
           sentence.text.substring(match.index + match[0].length),
         correctAnswer: match[0].toLowerCase(),
       });
@@ -167,11 +178,53 @@ function generateDialogExercisesFromTurns(
   return exercises;
 }
 
+function generateWordOrderExercises(
+  sentences: any[],
+  maxExercises = 3,
+): StudyExercise[] {
+  const exercises: StudyExercise[] = [];
+  // Shuffle sentence order to get variety
+  const shuffledSentences = [...sentences].sort(() => Math.random() - 0.5);
+
+  for (const sentence of shuffledSentences) {
+    if (exercises.length >= maxExercises) break;
+    const tokens = tokenizeSentence(sentence.text);
+    if (tokens.length < 3) continue;
+
+    // Shuffle tokens
+    const shuffled = [...tokens].sort(() => Math.random() - 0.5);
+    // Ensure shuffled differs from original
+    if (shuffled.every((t: string, i: number) => t === tokens[i])) {
+      // Swap first two if identical
+      if (shuffled.length >= 2) [shuffled[0], shuffled[1]] = [shuffled[1], shuffled[0]];
+      else continue;
+    }
+
+    exercises.push({
+      exerciseType: 'word-order',
+      sourceEntityType: 'sentence',
+      sourceEntityId: sentence.id,
+      renderedPrompt: '',
+      sentenceTranslation: sentence.translation,
+      targetWord: '',
+      correctAnswer: sentence.text,
+      shuffledTokens: shuffled,
+      correctTokens: tokens,
+    });
+  }
+
+  return exercises;
+}
+
 // --- StudyPage component ---
 
 export function StudyPage() {
   const { lessonId } = useParams<{ lessonId: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const modeId = (searchParams.get('mode') ?? 'normal') as SessionModeId;
+  const modeConfig = SESSION_MODES[modeId] ?? SESSION_MODES.normal;
+  const gapMode = useAppStore((s) => s.gapMode);
 
   const { data: lessonContent, isLoading: contentLoading } =
     useLessonContent(lessonId);
@@ -201,8 +254,11 @@ export function StudyPage() {
     correct: boolean;
     message: string;
   } | null>(null);
+  const [awaitingConfidence, setAwaitingConfidence] = useState(false);
   const [sessionStats, setSessionStats] = useState<any>(null);
   const answerStartTime = useRef(Date.now());
+  const answerSignals = useRef<AnswerSignal[]>([]);
+  const [frustrationMsg, setFrustrationMsg] = useState<string | null>(null);
 
   // ALL hooks before any early returns
 
@@ -213,19 +269,39 @@ export function StudyPage() {
     if (!vocabulary || vocabulary.length === 0) return;
     if (!dialogReady) return;
 
-    const gapFillExercises = generateGapFillExercises(
+    let gapFillExercises = generateGapFillExercises(
       lessonContent.sentences,
       vocabulary,
+      gapMode,
     );
+
+    // In low-energy mode, only keep MC exercises
+    if (modeId === 'low-energy') {
+      gapFillExercises = gapFillExercises.filter(
+        (e) => e.exerciseType === 'multiple-choice-gap-fill',
+      );
+    }
 
     const vocabLemmas = vocabulary.map((v: any) => v.lemma);
     const dialogExercises =
-      dialogTurns && dialogTurns.length > 1
+      modeId !== 'low-energy' && dialogTurns && dialogTurns.length > 1
         ? generateDialogExercisesFromTurns(dialogTurns, vocabLemmas)
         : [];
 
-    // Interleave: gap-fills first, then dialogs at the end
-    const allExercises = [...gapFillExercises, ...dialogExercises];
+    // Word order exercises: normal mode gets 1-2, deep mode gets 2-3
+    const wordOrderExercises =
+      modeConfig.exerciseTypes.includes('word-order')
+        ? generateWordOrderExercises(lessonContent.sentences, modeId === 'deep' ? 3 : 2)
+        : modeId === 'normal'
+          ? generateWordOrderExercises(lessonContent.sentences, 1)
+          : [];
+
+    // Combine: gap-fills → word order → dialogs, trim to mode max
+    const allExercises = [
+      ...gapFillExercises,
+      ...wordOrderExercises,
+      ...dialogExercises,
+    ].slice(0, modeConfig.maxExercises);
 
     initialized.current = true;
 
@@ -239,31 +315,10 @@ export function StudyPage() {
   useEffect(() => {
     answerStartTime.current = Date.now();
     setFeedback(null);
+    setAwaitingConfidence(false);
   }, [session.currentIndex]);
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (!feedback) return;
-      const exercise = session.currentExercise;
-      if (exercise?.exerciseType === 'multiple-choice-gap-fill') {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          session.nextExercise();
-        }
-      } else if (
-        exercise?.exerciseType === 'typed-gap-fill' ||
-        exercise?.exerciseType === 'dialog-completion'
-      ) {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          session.nextExercise();
-        }
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [feedback, session.currentExercise, session.nextExercise]);
+  // No keyboard-advance effect needed — ConfidenceWidget handles 1/2/3 keys
 
   // End persisted session when complete
   useEffect(() => {
@@ -274,6 +329,33 @@ export function StudyPage() {
     }
   }, [session.isComplete, sessionStats]);
 
+  const trackFrustration = useCallback(
+    (isCorrect: boolean, responseTimeMs: number, hintUsed: boolean) => {
+      answerSignals.current.push({ isCorrect, responseTimeMs, hintUsed });
+      const state = detectFrustration(answerSignals.current);
+      if (state.isFrustrated && !frustrationMsg) {
+        setFrustrationMsg(frustrationMessage(state));
+      }
+    },
+    [frustrationMsg],
+  );
+
+  const makeFeedback = useCallback(
+    (userAnswer: string, correct: boolean, hintUsed: boolean, exerciseType: string) => {
+      const exercise = session.currentExercise!;
+      const fb = generateFeedback({
+        userAnswer,
+        correctAnswer: exercise.correctAnswer,
+        isCorrect: correct,
+        hintUsed,
+        exerciseType,
+      });
+      setFeedback({ correct, message: fb.message });
+      setAwaitingConfidence(true);
+    },
+    [session],
+  );
+
   const handleMCAnswer = useCallback(
     (selectedIndex: number, correct: boolean) => {
       const responseTimeMs = Date.now() - answerStartTime.current;
@@ -282,13 +364,10 @@ export function StudyPage() {
 
       session.submitAnswer(userAnswer, correct, responseTimeMs);
       persistence.persistAnswer(exercise.sourceEntityId, userAnswer, correct, responseTimeMs, false);
-
-      setFeedback({
-        correct,
-        message: correct ? 'Correct!' : `Incorrect. The answer is: ${exercise.correctAnswer}`,
-      });
+      trackFrustration(correct, responseTimeMs, false);
+      makeFeedback(userAnswer, correct, false, exercise.exerciseType);
     },
-    [session, persistence],
+    [session, persistence, trackFrustration, makeFeedback],
   );
 
   const handleTypedAnswer = useCallback(
@@ -298,16 +377,10 @@ export function StudyPage() {
 
       session.submitAnswer(userAnswer, isCorrect, responseTimeMs);
       persistence.persistAnswer(exercise.sourceEntityId, userAnswer, isCorrect, responseTimeMs, false);
-
-      if (isCorrect && !isTypo) {
-        setFeedback({ correct: true, message: 'Correct!' });
-      } else if (isCorrect && isTypo) {
-        setFeedback({ correct: true, message: `Close enough! The exact answer is: ${exercise.correctAnswer}` });
-      } else {
-        setFeedback({ correct: false, message: `Incorrect. The answer is: ${exercise.correctAnswer}` });
-      }
+      trackFrustration(isCorrect, responseTimeMs, false);
+      makeFeedback(userAnswer, isCorrect, false, exercise.exerciseType);
     },
-    [session, persistence],
+    [session, persistence, trackFrustration, makeFeedback],
   );
 
   const handleDialogAnswer = useCallback(
@@ -317,13 +390,38 @@ export function StudyPage() {
 
       session.submitAnswer(userAnswer, correct, responseTimeMs);
       persistence.persistAnswer(exercise.sourceEntityId, userAnswer, correct, responseTimeMs, false);
+      trackFrustration(correct, responseTimeMs, false);
+      makeFeedback(userAnswer, correct, false, exercise.exerciseType);
+    },
+    [session, persistence, trackFrustration],
+  );
+
+  const handleWordOrderAnswer = useCallback(
+    (userTokens: string[], correct: boolean) => {
+      const responseTimeMs = Date.now() - answerStartTime.current;
+      const exercise = session.currentExercise!;
+      const userAnswer = userTokens.join(' ');
+
+      session.submitAnswer(userAnswer, correct, responseTimeMs);
+      persistence.persistAnswer(exercise.sourceEntityId, userAnswer, correct, responseTimeMs, false);
+      trackFrustration(correct, responseTimeMs, false);
 
       setFeedback({
         correct,
-        message: correct ? 'Correct!' : `Incorrect. The answer is: ${exercise.correctAnswer}`,
+        message: correct ? 'Correct word order!' : `Incorrect. The correct order is: ${exercise.correctAnswer}`,
       });
+      setAwaitingConfidence(true);
     },
-    [session, persistence],
+    [session, persistence, trackFrustration],
+  );
+
+  const handleConfidenceSelect = useCallback(
+    (confidence: 0 | 1 | 2) => {
+      setAwaitingConfidence(false);
+      // TODO: persist confidence to session answer (will be wired when IPC supports it)
+      session.nextExercise();
+    },
+    [session],
   );
 
   // --- Render ---
@@ -375,6 +473,7 @@ export function StudyPage() {
   if (exercise.exerciseType === 'dialog-completion') {
     return (
       <div className="mx-auto max-w-2xl pt-4">
+        {frustrationMsg && <FrustrationBanner message={frustrationMsg} />}
         {/* Progress bar */}
         <div className="mb-6">
           <div className="mb-1 flex items-center justify-between text-sm" style={{ color: 'var(--color-text-secondary)' }}>
@@ -402,21 +501,51 @@ export function StudyPage() {
           disabled={!!feedback}
         />
 
-        {feedback && (
-          <>
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={session.nextExercise}
-                className="rounded-lg px-6 py-2.5 text-sm font-medium"
-                style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-inverse)' }}
-              >
-                Next
-              </button>
-            </div>
-            <p className="mt-2 text-center text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-              Press Enter for next question
-            </p>
-          </>
+        {feedback && awaitingConfidence && (
+          <div className="mt-4">
+            <ConfidenceWidget onSelect={handleConfidenceSelect} />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (exercise.exerciseType === 'word-order') {
+    return (
+      <div className="mx-auto max-w-2xl pt-4">
+        {frustrationMsg && <FrustrationBanner message={frustrationMsg} />}
+        {/* Progress bar */}
+        <div className="mb-6">
+          <div className="mb-1 flex items-center justify-between text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+            <span>Question {session.currentIndex + 1} of {session.exercises.length}</span>
+            <span className="rounded px-2 py-0.5 text-xs font-medium" style={{ backgroundColor: 'var(--color-badge-purple)', color: 'var(--color-badge-purple-text)' }}>
+              Word Order
+            </span>
+          </div>
+          <div className="h-2 w-full rounded-full" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>
+            <div
+              className="h-2 rounded-full transition-all duration-300"
+              style={{ backgroundColor: 'var(--color-accent)', width: `${((session.currentIndex + 1) / session.exercises.length) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        <p className="mb-4 text-center text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+          Put the words in the correct order
+        </p>
+
+        <WordOrderExercise
+          shuffledTokens={exercise.shuffledTokens!}
+          correctTokens={exercise.correctTokens!}
+          translation={exercise.sentenceTranslation}
+          onAnswer={handleWordOrderAnswer}
+          disabled={!!feedback}
+        />
+
+        {feedback && awaitingConfidence && (
+          <div className="mt-4">
+            <ConfidenceWidget onSelect={handleConfidenceSelect} />
+          </div>
         )}
       </div>
     );
@@ -427,13 +556,14 @@ export function StudyPage() {
 
   return (
     <div className="pt-4">
+      {frustrationMsg && <FrustrationBanner message={frustrationMsg} />}
       <ExerciseShell
         current={session.currentIndex + 1}
         total={session.exercises.length}
         prompt={exercise.renderedPrompt}
         translation={exercise.sentenceTranslation}
         feedback={isTyped ? null : feedback}
-        showNext={!!feedback}
+        showNext={false}
         onNext={session.nextExercise}
       >
         {exercise.exerciseType === 'multiple-choice-gap-fill' && (
@@ -454,10 +584,10 @@ export function StudyPage() {
         )}
       </ExerciseShell>
 
-      {feedback && (
-        <p className="mt-2 text-center text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-          Press Enter for next question
-        </p>
+      {feedback && awaitingConfidence && (
+        <div className="mx-auto mt-4 max-w-2xl">
+          <ConfidenceWidget onSelect={handleConfidenceSelect} />
+        </div>
       )}
     </div>
   );

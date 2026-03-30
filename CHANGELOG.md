@@ -1,5 +1,84 @@
 # Changelog
 
+## [2.0.0] - 2026-03-30
+
+### v2 — Psychology-Aware Learning System
+
+#### Migration Engine
+- Schema versioning with `schema_meta` and `schema_migration_history` tables
+- Sequential migration runner with per-migration transactions and rollback
+- Automatic backup to `~/.personal-trainer/backups/` before non-additive migrations
+- Backup rotation (keeps last 5)
+- Migration v002: extends review_states with multi-dimensional mastery columns
+- Migration v003: adds confidence and attempt_count to session_answers
+
+#### Multi-Dimensional Mastery
+- Three mastery dimensions tracked separately: recognition, recall, transfer
+- Exercise types mapped to dimensions (MC → recognition, typed → recall, dialog → transfer)
+- Mastery deltas: correct +0.12 (no hint) / +0.05 (with hint), incorrect -0.08
+- Stage advancement now based on mastery thresholds:
+  - SEEN: totalCorrect > 0
+  - RECOGNIZED: recognitionMastery >= 0.4
+  - RECALLED: recallMastery >= 0.5
+  - STABLE: recallMastery >= 0.75 AND transferMastery >= 0.4
+  - AUTOMATED: all three >= 0.85 AND consecutiveIncorrect <= 1
+
+#### Learning Step State Machine
+- 5 steps: EXPOSURE → RECOGNITION → CONTROLLED_RECALL → FREE_RECALL → TRANSFER
+- Correct: advance one step. Incorrect: fall back one step
+- Suggests exercise type per learning step
+
+#### Confidence Tracking
+- Post-answer confidence widget: Guessed (0) / Somewhat Sure (1) / Confident (2)
+- Keyboard shortcuts 1/2/3, auto-defaults to "Somewhat Sure" after 3 seconds
+- Interval modifiers: guess = 0.7x, normal = 1.0x, confident = 1.2x
+- Overconfidence penalty: confident + wrong = extra -0.08 ease penalty
+- Low confidence hold: correct guess doesn't upgrade stage (unstable memory)
+
+#### Frustration Detection
+- Sliding window of last 10 answers
+- Triggers on: error rate >= 40%, avg response time >= 8s, hint rate >= 70%
+- Shows calming banner: "Let's take it easy and review what you know"
+
+#### Session Modes
+- Low Energy: 8 exercises, MC only, no new items, hints on
+- Normal: 15 exercises, MC + typed + dialog, 30% new items
+- Deep: 25 exercises, all types including word-order, 30% new items
+- Mode selector with visual cards on lesson page
+
+#### Word Order Exercise (4th exercise type)
+- Scrambled sentence tokens as clickable chips
+- Click to add to answer area, click to remove
+- Case-insensitive, punctuation-tolerant evaluation
+- "Word Order" badge in progress bar
+- Maps to recall mastery dimension
+
+#### Safe Failure Feedback
+- Context-aware messages replace generic "Incorrect"
+- Close spelling: "Almost! Check the spelling carefully"
+- Wrong article: "Good word, but it's 'de' not 'het'"
+- Dialog miss: "Not this time. You'll remember next time!"
+- Correct with hint: "You got it with a hint. Next time try without!"
+
+#### Competence Signals
+- Progress page shows milestone messages based on real progress
+- Item milestones: 10+, 50+, 100+ items learned
+- Session milestones: 10+ sessions
+- Strength signals: stable items, strong recall
+- Near-complete lesson encouragement
+
+#### Gap-Fill Display Modes
+- MASKED (default): fixed "____" blank
+- LENGTH_HINT: underscores matching word length with letter count
+- Configurable in Settings with visual preview cards
+- LENGTH_HINT renders with highlighted background and "(N letters)" hint
+
+#### PRD Documents
+- Added PRD v3.0 through v3.4 (verb conjugation design specs)
+- Added architect review with 10 decision questions for PO/Designer
+
+---
+
 ## [1.0.0] - 2026-03-30
 
 ### Initial Release — MVP Complete

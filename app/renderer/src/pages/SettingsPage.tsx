@@ -4,7 +4,7 @@ import { themes, type ThemeDefinition } from '../lib/themes';
 import { PageHeader } from '../components/common/PageHeader';
 
 export function SettingsPage() {
-  const { themeId, setTheme } = useAppStore();
+  const { themeId, setTheme, gapMode, setGapMode } = useAppStore();
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -12,7 +12,7 @@ export function SettingsPage() {
 
       {/* Theme section */}
       <section className="mb-8">
-        <h3 className="mb-4 text-lg font-semibold themed-text">
+        <h3 className="mb-4 text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>
           Color Theme
         </h3>
         <div className="grid grid-cols-2 gap-4">
@@ -24,6 +24,55 @@ export function SettingsPage() {
               onSelect={() => setTheme(theme.id)}
             />
           ))}
+        </div>
+      </section>
+
+      {/* Gap-fill mode */}
+      <section className="mb-8">
+        <h3 className="mb-4 text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+          Gap-Fill Display
+        </h3>
+        <div className="grid grid-cols-2 gap-4">
+          <button
+            onClick={() => setGapMode('MASKED')}
+            className={`rounded-lg border-2 p-4 text-left transition-all ${
+              gapMode === 'MASKED' ? 'shadow-md' : ''
+            }`}
+            style={{
+              backgroundColor: 'var(--color-bg-secondary)',
+              borderColor: gapMode === 'MASKED' ? 'var(--color-accent)' : 'var(--color-border)',
+            }}
+          >
+            <p className="mb-1 text-lg font-mono" style={{ color: 'var(--color-text-primary)' }}>
+              Ik ga naar de ____.
+            </p>
+            <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+              Masked (default)
+            </p>
+            <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+              Fixed blank — doesn't reveal word length
+            </p>
+          </button>
+          <button
+            onClick={() => setGapMode('LENGTH_HINT')}
+            className={`rounded-lg border-2 p-4 text-left transition-all ${
+              gapMode === 'LENGTH_HINT' ? 'shadow-md' : ''
+            }`}
+            style={{
+              backgroundColor: 'var(--color-bg-secondary)',
+              borderColor: gapMode === 'LENGTH_HINT' ? 'var(--color-accent)' : 'var(--color-border)',
+            }}
+          >
+            <p className="mb-1 text-lg font-mono" style={{ color: 'var(--color-text-primary)' }}>
+              Ik ga naar de _ _ _ _ _ _.
+            </p>
+            <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+              Length Hint
+            </p>
+            <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+              Blank matches word length — easier difficulty
+            </p>
+          </button>
         </div>
       </section>
     </div>
