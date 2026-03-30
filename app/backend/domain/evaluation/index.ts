@@ -10,3 +10,9 @@ export {
   stripArticle,
   extractArticle,
 } from './articleChecker';
+export {
+  classifyConjugationError,
+  isConjugationAccepted,
+  conjugationFeedbackMessage,
+} from './conjugationChecker';
+export type { ConjugationErrorType, ConjugationCheckResult } from './conjugationChecker';

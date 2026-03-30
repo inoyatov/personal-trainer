@@ -1,5 +1,71 @@
 # Changelog
 
+## [3.0.0] - 2026-03-30
+
+### v3 — Verb Conjugation System
+
+#### Database & Migration
+- Migration v004: 7 new tables for verb conjugation (verbs, verb_conjugation_sets, verb_conjugation_forms, lesson_verbs, sentence_verbs, conjugation_review_states, conjugation_attempts)
+- 10 indexes including unique constraint on review states
+- 3-table conjugation hierarchy supporting future tense expansion
+
+#### Verb Repository
+- 20 CRUD methods for verbs, conjugation forms, lesson links, review states, and attempts
+- getAllFormsMap(): pronoun→form lookup for any verb
+- Conjugation review state with upsert and due-items query
+
+#### Seed Data
+- 15 Dutch verbs: wonen, werken, spreken, maken, eten, drinken, doen, zien, zijn, hebben, gaan, komen, willen, kunnen, moeten
+- 135 present-tense conjugation forms (9 pronouns each)
+- Lesson-verb links: target, supporting, and focus_irregular roles
+
+#### Error Classification (5 types)
+- CORRECT: exact match after normalization
+- TYPO: within Levenshtein tolerance (stricter for short forms: 1-3 chars = exact only)
+- MISSING_T: expected ends in -t, input missing it (most common A2 error)
+- WRONG_PRONOUN_FORM: input matches another pronoun's form for same verb
+- WRONG: completely incorrect
+- Supportive feedback per error type
+
+#### Exercise Types
+- CONJUGATION_TYPED: "Conjugate 'werken' for 'ik'" → user types "werk"
+- CONJUGATION_IN_SENTENCE: "Ik ____ in Amsterdam. (wonen)" → user types "woon"
+- Both map to recallMastery dimension in review scheduler
+
+#### Conjugation Practice Page
+- Separate practice mode at /conjugation/:lessonId
+- Mixed typed + sentence exercises
+- Progress bar with "Conjugation" badge
+- Error-type-specific feedback with -t hints and pronoun guidance
+- Session summary with accuracy and answer breakdown
+- Enter key to advance, Practice Again to restart
+
+#### Lesson Integration
+- VerbCard component: infinitive, translation, type badge, 9-pronoun conjugation grid
+- "Practice Conjugation (N verbs)" button on lessons with target verbs
+- Verb cards displayed in 2-column grid on lesson page
+
+#### IPC Channels (6 new)
+- conjugation:getLessonVerbs, getForms, generateExercises, submitAnswer, getDueReviews, getStats
+
+#### Content Pack Support
+- 5 new Zod schemas for verb entities
+- Import/export support for verbs, conjugation sets, forms, lesson links, sentence links
+- Both course and lesson export include verb data
+
+#### Dashboard & Progress
+- "Verbs Practiced" metric on dashboard
+- Conjugation section on progress page: verbs practiced, accuracy, total attempts
+- Weak pronouns warning (< 50% accuracy)
+- Error type breakdown badges
+
+#### Other
+- Delete functionality: 🗑 icon on courses, modules, lessons with confirmation dialog
+- Review study session: Start Review button now launches actual exercise session
+- Updated lesson generation guide with exercise types, study modes, and writing prompt docs
+
+---
+
 ## [2.0.0] - 2026-03-30
 
 ### v2 — Psychology-Aware Learning System

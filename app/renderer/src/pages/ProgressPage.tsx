@@ -30,6 +30,12 @@ export function ProgressPage() {
   const { data: sessions } = useRecentSessions();
   const { data: reviewStates, isLoading: statesLoading } = useAllReviewStates();
 
+  // Conjugation stats
+  const { data: conjStats } = useQuery({
+    queryKey: ['conjugationStats'],
+    queryFn: () => api.conjugation.getStats(),
+  });
+
   if (statsLoading || statesLoading) return <LoadingSpinner />;
 
   // Compute stage distribution
@@ -106,6 +112,49 @@ export function ProgressPage() {
           value={stats?.todayTotal ? `${stats.todayAccuracy}%` : '--'}
         />
       </div>
+
+      {/* Conjugation stats */}
+      {conjStats && conjStats.verbsPracticed > 0 && (
+        <div className="mb-8">
+          <h3 className="mb-3 text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+            Verb Conjugation
+          </h3>
+          <div className="mb-3 flex gap-4">
+            <div className="rounded-lg border px-4 py-3" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}>
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Verbs Practiced</p>
+              <p className="text-xl font-bold" style={{ color: 'var(--color-badge-orange-text)' }}>{conjStats.verbsPracticed}</p>
+            </div>
+            <div className="rounded-lg border px-4 py-3" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}>
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Accuracy</p>
+              <p className="text-xl font-bold" style={{ color: 'var(--color-accent)' }}>{conjStats.accuracy}%</p>
+            </div>
+            <div className="rounded-lg border px-4 py-3" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}>
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Total Attempts</p>
+              <p className="text-xl font-bold" style={{ color: 'var(--color-text-primary)' }}>{conjStats.totalAttempts}</p>
+            </div>
+          </div>
+          {conjStats.weakPronouns.length > 0 && (
+            <div
+              className="rounded-lg border p-3 text-sm"
+              style={{ backgroundColor: 'var(--color-warning-light)', borderColor: 'var(--color-warning)', color: 'var(--color-warning-text)' }}
+            >
+              Weak pronouns: {conjStats.weakPronouns.map((p: string) => {
+                const labels: Record<string, string> = { IK: 'ik', JIJ: 'jij', U: 'u', HIJ: 'hij', ZIJ_SG: 'zij', HET: 'het', WIJ: 'wij', JULLIE: 'jullie', ZIJ_PL: 'zij(pl)' };
+                return labels[p] ?? p;
+              }).join(', ')} — these need more practice
+            </div>
+          )}
+          {Object.keys(conjStats.errorCounts).length > 0 && (
+            <div className="mt-2 flex gap-2">
+              {Object.entries(conjStats.errorCounts).map(([type, count]: [string, any]) => (
+                <span key={type} className="rounded-full px-2 py-0.5 text-xs" style={{ backgroundColor: 'var(--color-error-light)', color: 'var(--color-error-text)' }}>
+                  {type}: {count}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Mastery stage distribution */}
       <div className="mb-8">

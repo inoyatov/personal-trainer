@@ -15,6 +15,8 @@ export function dimensionForExercise(exerciseType: string): MasteryDimension {
     case 'word-order':
     case 'dictation-recall':
     case 'grammar-drill':
+    case 'conjugation-typed':
+    case 'conjugation-in-sentence':
       return 'recallMastery';
 
     case 'dialog-completion':

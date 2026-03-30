@@ -5,3 +5,7 @@ export { generateDialogExercises } from './dialogTurnGenerator';
 export type { DialogExercise, DialogTurnInput } from './dialogTurnGenerator';
 export { generateWordOrder, generateWordOrderBatch, tokenizeSentence, evaluateWordOrder } from './wordOrderGenerator';
 export type { WordOrderExerciseData } from './wordOrderGenerator';
+export { generateConjugationTyped, generateConjugationTypedBatch } from './conjugationTypedGenerator';
+export type { ConjugationTypedExercise } from './conjugationTypedGenerator';
+export { generateConjugationInSentence, generateConjugationInSentenceBatch } from './conjugationInSentenceGenerator';
+export type { ConjugationInSentenceExercise } from './conjugationInSentenceGenerator';

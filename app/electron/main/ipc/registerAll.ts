@@ -12,6 +12,8 @@ import { registerReviewHandlers } from './reviewHandlers';
 import { registerWritingHandlers } from './writingHandlers';
 import { registerDashboardHandlers } from './dashboardHandlers';
 import { registerImportExportHandlers } from './importExportHandlers';
+import { createVerbRepository } from '../../../backend/db/repositories/verbRepository';
+import { registerConjugationHandlers } from './conjugationHandlers';
 
 export function registerAllHandlers(db: AppDatabase) {
   const courseRepo = createCourseRepository(db);
@@ -19,6 +21,7 @@ export function registerAllHandlers(db: AppDatabase) {
   const sessionRepo = createSessionRepository(db);
   const reviewRepo = createReviewRepository(db);
   const writingRepo = createWritingRepository(db);
+  const verbRepo = createVerbRepository(db);
   const reviewScheduler = createReviewScheduler(reviewRepo);
   const dashboardService = createDashboardService(db, reviewRepo);
 
@@ -28,4 +31,5 @@ export function registerAllHandlers(db: AppDatabase) {
   registerWritingHandlers(writingRepo);
   registerDashboardHandlers(dashboardService);
   registerImportExportHandlers(db);
+  registerConjugationHandlers(verbRepo, contentRepo);
 }

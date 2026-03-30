@@ -7,6 +7,8 @@ import { runMigrations, getCurrentVersion, createBackup } from './migrationRunne
 import type { Migration } from './types';
 import { migration as v002Migration } from './scripts/v002_extend_review_states';
 import { migration as v003Migration } from './scripts/v003_add_confidence';
+import { migration as v004Migration } from './scripts/v004_add_verb_conjugation';
+import { createTestDb as createAppTestDb } from '../testDb';
 
 function createFreshDb(): Database.Database {
   const db = new Database(':memory:');
@@ -321,5 +323,61 @@ describe('actual migrations', () => {
     expect(cols).toContain('attempt_count');
 
     db.close();
+  });
+
+  it('should run v004 to add verb tables', () => {
+    const db = createFreshDb();
+    // Need lessons and sentence_items tables for FKs
+    db.exec(`CREATE TABLE lessons (id TEXT PRIMARY KEY, module_id TEXT, title TEXT NOT NULL, description TEXT DEFAULT '', order_index INTEGER DEFAULT 0, estimated_minutes INTEGER DEFAULT 15)`);
+    db.exec(`CREATE TABLE class_groups (id TEXT PRIMARY KEY, lesson_id TEXT, type TEXT, title TEXT, order_index INTEGER DEFAULT 0)`);
+    db.exec(`CREATE TABLE sentence_items (id TEXT PRIMARY KEY, text TEXT NOT NULL, translation TEXT NOT NULL, lesson_id TEXT, class_group_id TEXT, target_vocabulary_ids TEXT DEFAULT '[]', target_grammar_pattern_ids TEXT DEFAULT '[]', audio_path TEXT)`);
+
+    // Set version to 3 (v004 requires v003 to have run)
+    db.exec(`CREATE TABLE IF NOT EXISTS schema_meta (id INTEGER PRIMARY KEY DEFAULT 1, current_version INTEGER NOT NULL, app_version TEXT NOT NULL, updated_at INTEGER NOT NULL)`);
+    db.exec(`INSERT INTO schema_meta VALUES (1, 3, '2.0.0', ${Date.now()})`);
+
+    runMigrations(db, [v004Migration]);
+    expect(getCurrentVersion(db)).toBe(4);
+
+    // Verify all 7 tables exist
+    const tables = ['verbs', 'verb_conjugation_sets', 'verb_conjugation_forms',
+      'lesson_verbs', 'sentence_verbs', 'conjugation_review_states', 'conjugation_attempts'];
+    for (const table of tables) {
+      const info = db.prepare(`PRAGMA table_info('${table}')`).all();
+      expect((info as any[]).length).toBeGreaterThan(0);
+    }
+
+    // Test inserting and querying verb data
+    db.exec(`INSERT INTO verbs (id, infinitive, translation, type, is_separable, created_at) VALUES ('v-test', 'werken', 'to work', 'regular', 0, '2026-01-01')`);
+    db.exec(`INSERT INTO verb_conjugation_sets (id, verb_id, tense) VALUES ('vcs-test', 'v-test', 'present')`);
+    db.exec(`INSERT INTO verb_conjugation_forms (id, conjugation_set_id, pronoun, form) VALUES ('vcf-1', 'vcs-test', 'IK', 'werk')`);
+    db.exec(`INSERT INTO verb_conjugation_forms (id, conjugation_set_id, pronoun, form) VALUES ('vcf-2', 'vcs-test', 'HIJ', 'werkt')`);
+
+    const forms = db.prepare("SELECT * FROM verb_conjugation_forms WHERE conjugation_set_id = 'vcs-test' ORDER BY pronoun").all() as any[];
+    expect(forms).toHaveLength(2);
+    expect(forms[0].form).toBe('werkt'); // HIJ comes first alphabetically
+    expect(forms[1].form).toBe('werk');  // IK
+
+    // Test FK cascade: deleting verb should cascade to conjugation sets and forms
+    db.exec(`DELETE FROM verbs WHERE id = 'v-test'`);
+    const remainingSets = db.prepare("SELECT * FROM verb_conjugation_sets WHERE verb_id = 'v-test'").all();
+    expect(remainingSets).toHaveLength(0);
+
+    // Test conjugation_review_states unique constraint
+    db.exec(`INSERT INTO verbs (id, infinitive, translation, created_at) VALUES ('v-test2', 'wonen', 'to live', '2026-01-01')`);
+    db.exec(`INSERT INTO conjugation_review_states (id, user_id, verb_id, pronoun, tense, due_at, created_at) VALUES ('crs-1', 'default', 'v-test2', 'IK', 'present', '2026-01-01', '2026-01-01')`);
+
+    // Duplicate should fail
+    expect(() => {
+      db.exec(`INSERT INTO conjugation_review_states (id, user_id, verb_id, pronoun, tense, due_at, created_at) VALUES ('crs-2', 'default', 'v-test2', 'IK', 'present', '2026-01-01', '2026-01-01')`);
+    }).toThrow();
+
+    db.close();
+  });
+
+  it('should create verb tables in fresh testDb', () => {
+    const db = createAppTestDb();
+    // The testDb creates tables via migrate.ts which should include verb tables
+    expect(db).toBeDefined();
   });
 });

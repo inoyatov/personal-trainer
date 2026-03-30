@@ -13,6 +13,7 @@ import { ReviewStudyPage } from '../pages/ReviewStudyPage';
 import { WritingLabPage } from '../pages/WritingLabPage';
 import { ProgressPage } from '../pages/ProgressPage';
 import { SettingsPage } from '../pages/SettingsPage';
+import { ConjugationPracticePage } from '../pages/ConjugationPracticePage';
 import { useAppStore } from '../lib/store';
 import { getThemeById, applyTheme } from '../lib/themes';
 
@@ -54,6 +55,7 @@ export function App() {
             <Route path="/writing" element={<WritingLabPage />} />
             <Route path="/progress" element={<ProgressPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/conjugation/:lessonId" element={<ConjugationPracticePage />} />
           </Routes>
         </MainLayout>
       </HashRouter>

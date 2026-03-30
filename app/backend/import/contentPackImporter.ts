@@ -6,6 +6,7 @@ import {
 import { vocabularyItems, sentenceItems, dialogs, dialogTurns } from '../db/schema/content';
 import { grammarPatterns } from '../db/schema/grammar';
 import { writingPrompts } from '../db/schema/writing';
+import { verbs, verbConjugationSets, verbConjugationForms, lessonVerbs, sentenceVerbs } from '../db/schema/verbs';
 import { sql } from 'drizzle-orm';
 
 export interface ImportResult {
@@ -21,6 +22,11 @@ export interface ImportResult {
     dialogTurns: number;
     grammarPatterns: number;
     writingPrompts: number;
+    verbs: number;
+    verbConjugationSets: number;
+    verbConjugationForms: number;
+    lessonVerbs: number;
+    sentenceVerbs: number;
   };
   errors: string[];
 }
@@ -126,6 +132,32 @@ export function importContentPack(
       counts.writingPrompts++;
     }
 
+    // Verb entities (must come after lessons/sentences for FK order)
+    for (const v of pack.verbs) {
+      db.insert(verbs).values(sanitizeRecord(v)).run();
+      counts.verbs++;
+    }
+
+    for (const vcs of pack.verbConjugationSets) {
+      db.insert(verbConjugationSets).values(sanitizeRecord(vcs)).run();
+      counts.verbConjugationSets++;
+    }
+
+    for (const vcf of pack.verbConjugationForms) {
+      db.insert(verbConjugationForms).values(sanitizeRecord(vcf as any)).run();
+      counts.verbConjugationForms++;
+    }
+
+    for (const lv of pack.lessonVerbs) {
+      db.insert(lessonVerbs).values(sanitizeRecord(lv as any)).run();
+      counts.lessonVerbs++;
+    }
+
+    for (const sv of pack.sentenceVerbs) {
+      db.insert(sentenceVerbs).values(sanitizeRecord(sv as any)).run();
+      counts.sentenceVerbs++;
+    }
+
     db.run(sql`COMMIT`);
 
     return { success: true, counts, errors: [] };
@@ -155,5 +187,10 @@ function emptyCounts(): ImportResult['counts'] {
     dialogTurns: 0,
     grammarPatterns: 0,
     writingPrompts: 0,
+    verbs: 0,
+    verbConjugationSets: 0,
+    verbConjugationForms: 0,
+    lessonVerbs: 0,
+    sentenceVerbs: 0,
   };
 }

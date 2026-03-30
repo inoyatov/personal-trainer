@@ -48,6 +48,14 @@ export const Channels = {
   DASHBOARD_GET_STATS: 'dashboard:getStats',
   DASHBOARD_GET_RECENT_SESSIONS: 'dashboard:getRecentSessions',
 
+  // Conjugation
+  CONJUGATION_GET_LESSON_VERBS: 'conjugation:getLessonVerbs',
+  CONJUGATION_GET_FORMS: 'conjugation:getForms',
+  CONJUGATION_GENERATE_EXERCISES: 'conjugation:generateExercises',
+  CONJUGATION_SUBMIT_ANSWER: 'conjugation:submitAnswer',
+  CONJUGATION_GET_DUE_REVIEWS: 'conjugation:getDueReviews',
+  CONJUGATION_GET_STATS: 'conjugation:getStats',
+
   // Import/Export
   IMPORT_CONTENT_PACK: 'import:contentPack',
   IMPORT_LESSON: 'import:lesson',

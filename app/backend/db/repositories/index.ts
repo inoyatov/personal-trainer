@@ -12,3 +12,6 @@ export type { ReviewRepository } from './reviewRepository';
 
 export { createWritingRepository } from './writingRepository';
 export type { WritingRepository } from './writingRepository';
+
+export { createVerbRepository } from './verbRepository';
+export type { VerbRepository } from './verbRepository';

@@ -3,6 +3,7 @@ import { courses, modules, lessons, classGroups } from './schema/courses';
 import { vocabularyItems, sentenceItems, dialogs, dialogTurns } from './schema/content';
 import { grammarPatterns } from './schema/grammar';
 import { writingPrompts } from './schema/writing';
+import { verbs, verbConjugationSets, verbConjugationForms, lessonVerbs } from './schema/verbs';
 
 /**
  * Seed the database with sample Dutch A2 content for testing.
@@ -231,4 +232,143 @@ export function seed(db: AppDatabase) {
     expectedKeywords: JSON.stringify(['ziek', 'niet', 'komen', 'morgen', 'dokter', 'hoofdpijn']),
     difficulty: 1.2,
   }).run();
+
+  // ============================================
+  // VERB CONJUGATION SEED DATA
+  // ============================================
+
+  seedVerbs(db);
+}
+
+/** Helper: insert a verb with its present-tense conjugation forms */
+function seedVerb(
+  db: AppDatabase,
+  id: string,
+  infinitive: string,
+  translation: string,
+  type: 'regular' | 'irregular',
+  forms: Record<string, string>,
+  lessonLinks?: Array<{ lessonId: string; role: 'target' | 'supporting' | 'focus_irregular' }>,
+) {
+  db.insert(verbs).values({
+    id,
+    infinitive,
+    translation,
+    type,
+    isSeparable: false,
+  }).run();
+
+  const setId = `${id}-present`;
+  db.insert(verbConjugationSets).values({
+    id: setId,
+    verbId: id,
+    tense: 'present',
+  }).run();
+
+  const pronouns = ['IK', 'JIJ', 'U', 'HIJ', 'ZIJ_SG', 'HET', 'WIJ', 'JULLIE', 'ZIJ_PL'] as const;
+  for (const pronoun of pronouns) {
+    const form = forms[pronoun];
+    if (form) {
+      db.insert(verbConjugationForms).values({
+        id: `${setId}-${pronoun.toLowerCase()}`,
+        conjugationSetId: setId,
+        pronoun,
+        form,
+      }).run();
+    }
+  }
+
+  if (lessonLinks) {
+    for (let i = 0; i < lessonLinks.length; i++) {
+      db.insert(lessonVerbs).values({
+        lessonId: lessonLinks[i].lessonId,
+        verbId: id,
+        role: lessonLinks[i].role,
+        orderIndex: i,
+      }).run();
+    }
+  }
+}
+
+function seedVerbs(db: AppDatabase) {
+  // --- Regular verbs ---
+
+  seedVerb(db, 'verb-wonen', 'wonen', 'to live', 'regular', {
+    IK: 'woon', JIJ: 'woont', U: 'woont', HIJ: 'woont', ZIJ_SG: 'woont', HET: 'woont',
+    WIJ: 'wonen', JULLIE: 'wonen', ZIJ_PL: 'wonen',
+  }, [{ lessonId: 'les-1', role: 'supporting' }]);
+
+  seedVerb(db, 'verb-werken', 'werken', 'to work', 'regular', {
+    IK: 'werk', JIJ: 'werkt', U: 'werkt', HIJ: 'werkt', ZIJ_SG: 'werkt', HET: 'werkt',
+    WIJ: 'werken', JULLIE: 'werken', ZIJ_PL: 'werken',
+  });
+
+  seedVerb(db, 'verb-spreken', 'spreken', 'to speak', 'irregular', {
+    IK: 'spreek', JIJ: 'spreekt', U: 'spreekt', HIJ: 'spreekt', ZIJ_SG: 'spreekt', HET: 'spreekt',
+    WIJ: 'spreken', JULLIE: 'spreken', ZIJ_PL: 'spreken',
+  });
+
+  seedVerb(db, 'verb-maken', 'maken', 'to make', 'regular', {
+    IK: 'maak', JIJ: 'maakt', U: 'maakt', HIJ: 'maakt', ZIJ_SG: 'maakt', HET: 'maakt',
+    WIJ: 'maken', JULLIE: 'maken', ZIJ_PL: 'maken',
+  }, [{ lessonId: 'les-3', role: 'supporting' }]);
+
+  seedVerb(db, 'verb-eten', 'eten', 'to eat', 'irregular', {
+    IK: 'eet', JIJ: 'eet', U: 'eet', HIJ: 'eet', ZIJ_SG: 'eet', HET: 'eet',
+    WIJ: 'eten', JULLIE: 'eten', ZIJ_PL: 'eten',
+  }, [{ lessonId: 'les-1', role: 'supporting' }]);
+
+  seedVerb(db, 'verb-drinken', 'drinken', 'to drink', 'irregular', {
+    IK: 'drink', JIJ: 'drinkt', U: 'drinkt', HIJ: 'drinkt', ZIJ_SG: 'drinkt', HET: 'drinkt',
+    WIJ: 'drinken', JULLIE: 'drinken', ZIJ_PL: 'drinken',
+  }, [{ lessonId: 'les-1', role: 'supporting' }]);
+
+  seedVerb(db, 'verb-doen', 'doen', 'to do', 'irregular', {
+    IK: 'doe', JIJ: 'doet', U: 'doet', HIJ: 'doet', ZIJ_SG: 'doet', HET: 'doet',
+    WIJ: 'doen', JULLIE: 'doen', ZIJ_PL: 'doen',
+  });
+
+  seedVerb(db, 'verb-zien', 'zien', 'to see', 'irregular', {
+    IK: 'zie', JIJ: 'ziet', U: 'ziet', HIJ: 'ziet', ZIJ_SG: 'ziet', HET: 'ziet',
+    WIJ: 'zien', JULLIE: 'zien', ZIJ_PL: 'zien',
+  });
+
+  // --- High-frequency irregular verbs ---
+
+  seedVerb(db, 'verb-zijn', 'zijn', 'to be', 'irregular', {
+    IK: 'ben', JIJ: 'bent', U: 'bent', HIJ: 'is', ZIJ_SG: 'is', HET: 'is',
+    WIJ: 'zijn', JULLIE: 'zijn', ZIJ_PL: 'zijn',
+  }, [{ lessonId: 'les-3', role: 'focus_irregular' }]);
+
+  seedVerb(db, 'verb-hebben', 'hebben', 'to have', 'irregular', {
+    IK: 'heb', JIJ: 'hebt', U: 'hebt', HIJ: 'heeft', ZIJ_SG: 'heeft', HET: 'heeft',
+    WIJ: 'hebben', JULLIE: 'hebben', ZIJ_PL: 'hebben',
+  }, [{ lessonId: 'les-3', role: 'focus_irregular' }]);
+
+  seedVerb(db, 'verb-gaan', 'gaan', 'to go', 'irregular', {
+    IK: 'ga', JIJ: 'gaat', U: 'gaat', HIJ: 'gaat', ZIJ_SG: 'gaat', HET: 'gaat',
+    WIJ: 'gaan', JULLIE: 'gaan', ZIJ_PL: 'gaan',
+  }, [{ lessonId: 'les-2', role: 'target' }]);
+
+  seedVerb(db, 'verb-komen', 'komen', 'to come', 'irregular', {
+    IK: 'kom', JIJ: 'komt', U: 'komt', HIJ: 'komt', ZIJ_SG: 'komt', HET: 'komt',
+    WIJ: 'komen', JULLIE: 'komen', ZIJ_PL: 'komen',
+  }, [{ lessonId: 'les-3', role: 'target' }]);
+
+  // --- Modal verbs ---
+
+  seedVerb(db, 'verb-willen', 'willen', 'to want', 'irregular', {
+    IK: 'wil', JIJ: 'wilt', U: 'wilt', HIJ: 'wil', ZIJ_SG: 'wil', HET: 'wil',
+    WIJ: 'willen', JULLIE: 'willen', ZIJ_PL: 'willen',
+  }, [{ lessonId: 'les-1', role: 'target' }]);
+
+  seedVerb(db, 'verb-kunnen', 'kunnen', 'to be able to / can', 'irregular', {
+    IK: 'kan', JIJ: 'kunt', U: 'kunt', HIJ: 'kan', ZIJ_SG: 'kan', HET: 'kan',
+    WIJ: 'kunnen', JULLIE: 'kunnen', ZIJ_PL: 'kunnen',
+  }, [{ lessonId: 'les-3', role: 'target' }]);
+
+  seedVerb(db, 'verb-moeten', 'moeten', 'to must / have to', 'irregular', {
+    IK: 'moet', JIJ: 'moet', U: 'moet', HIJ: 'moet', ZIJ_SG: 'moet', HET: 'moet',
+    WIJ: 'moeten', JULLIE: 'moeten', ZIJ_PL: 'moeten',
+  }, [{ lessonId: 'les-3', role: 'target' }]);
 }

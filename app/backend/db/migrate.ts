@@ -204,6 +204,88 @@ export function runMigrations(db: AppDatabase) {
     tag TEXT NOT NULL
   )`);
 
+  // --- Verb conjugation tables (v004) ---
+
+  db.run(sql`CREATE TABLE IF NOT EXISTS verbs (
+    id TEXT PRIMARY KEY,
+    infinitive TEXT NOT NULL,
+    translation TEXT NOT NULL,
+    type TEXT NOT NULL DEFAULT 'regular' CHECK(type IN ('regular', 'irregular')),
+    is_separable INTEGER NOT NULL DEFAULT 0,
+    usage_notes TEXT,
+    difficulty REAL NOT NULL DEFAULT 1.0,
+    lesson_id TEXT REFERENCES lessons(id) ON DELETE SET NULL,
+    class_group_id TEXT REFERENCES class_groups(id) ON DELETE SET NULL,
+    created_at TEXT NOT NULL DEFAULT ''
+  )`);
+
+  db.run(sql`CREATE TABLE IF NOT EXISTS verb_conjugation_sets (
+    id TEXT PRIMARY KEY,
+    verb_id TEXT NOT NULL REFERENCES verbs(id) ON DELETE CASCADE,
+    tense TEXT NOT NULL DEFAULT 'present',
+    mood TEXT NOT NULL DEFAULT 'indicative',
+    notes TEXT
+  )`);
+
+  db.run(sql`CREATE TABLE IF NOT EXISTS verb_conjugation_forms (
+    id TEXT PRIMARY KEY,
+    conjugation_set_id TEXT NOT NULL REFERENCES verb_conjugation_sets(id) ON DELETE CASCADE,
+    pronoun TEXT NOT NULL CHECK(pronoun IN ('IK', 'JIJ', 'U', 'HIJ', 'ZIJ_SG', 'HET', 'WIJ', 'JULLIE', 'ZIJ_PL')),
+    form TEXT NOT NULL,
+    alternate_forms_json TEXT,
+    is_preferred INTEGER NOT NULL DEFAULT 1
+  )`);
+
+  db.run(sql`CREATE TABLE IF NOT EXISTS lesson_verbs (
+    lesson_id TEXT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+    verb_id TEXT NOT NULL REFERENCES verbs(id) ON DELETE CASCADE,
+    role TEXT NOT NULL CHECK(role IN ('target', 'supporting', 'focus_irregular')),
+    order_index INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (lesson_id, verb_id)
+  )`);
+
+  db.run(sql`CREATE TABLE IF NOT EXISTS sentence_verbs (
+    sentence_id TEXT NOT NULL REFERENCES sentence_items(id) ON DELETE CASCADE,
+    verb_id TEXT NOT NULL REFERENCES verbs(id) ON DELETE CASCADE,
+    conjugation_form_id TEXT REFERENCES verb_conjugation_forms(id) ON DELETE SET NULL,
+    surface_form TEXT NOT NULL,
+    is_finite INTEGER NOT NULL DEFAULT 1
+  )`);
+
+  db.run(sql`CREATE TABLE IF NOT EXISTS conjugation_review_states (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL DEFAULT 'default',
+    verb_id TEXT NOT NULL REFERENCES verbs(id) ON DELETE CASCADE,
+    pronoun TEXT NOT NULL,
+    tense TEXT NOT NULL DEFAULT 'present',
+    stage TEXT NOT NULL DEFAULT 'new' CHECK(stage IN ('new', 'seen', 'recognized', 'recalled', 'stable', 'automated')),
+    ease_score REAL NOT NULL DEFAULT 2.5,
+    stability_score REAL NOT NULL DEFAULT 0,
+    success_count INTEGER NOT NULL DEFAULT 0,
+    fail_count INTEGER NOT NULL DEFAULT 0,
+    average_latency_ms REAL NOT NULL DEFAULT 0,
+    due_at TEXT NOT NULL,
+    last_seen_at TEXT,
+    created_at TEXT NOT NULL DEFAULT ''
+  )`);
+
+  db.run(sql`CREATE TABLE IF NOT EXISTS conjugation_attempts (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL DEFAULT 'default',
+    session_id TEXT,
+    verb_id TEXT NOT NULL REFERENCES verbs(id) ON DELETE CASCADE,
+    pronoun TEXT NOT NULL,
+    tense TEXT NOT NULL DEFAULT 'present',
+    expected_form TEXT NOT NULL,
+    user_answer TEXT NOT NULL,
+    correct INTEGER NOT NULL,
+    error_type TEXT NOT NULL CHECK(error_type IN ('CORRECT', 'TYPO', 'MISSING_T', 'WRONG_PRONOUN_FORM', 'WRONG')),
+    response_time_ms INTEGER NOT NULL DEFAULT 0,
+    confidence INTEGER,
+    hint_used INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT ''
+  )`);
+
   // Indexes
   db.run(
     sql`CREATE INDEX IF NOT EXISTS idx_review_states_user_due ON review_states(user_id, due_at)`,
@@ -235,4 +317,14 @@ export function runMigrations(db: AppDatabase) {
   db.run(
     sql`CREATE INDEX IF NOT EXISTS idx_dialogs_lesson ON dialogs(lesson_id)`,
   );
+  // Verb indexes
+  db.run(sql`CREATE INDEX IF NOT EXISTS idx_verbs_lesson ON verbs(lesson_id)`);
+  db.run(sql`CREATE INDEX IF NOT EXISTS idx_verb_conj_sets_verb ON verb_conjugation_sets(verb_id, tense, mood)`);
+  db.run(sql`CREATE INDEX IF NOT EXISTS idx_verb_conj_forms_set ON verb_conjugation_forms(conjugation_set_id, pronoun)`);
+  db.run(sql`CREATE INDEX IF NOT EXISTS idx_lesson_verbs_lesson ON lesson_verbs(lesson_id, order_index)`);
+  db.run(sql`CREATE INDEX IF NOT EXISTS idx_sentence_verbs_verb ON sentence_verbs(verb_id)`);
+  db.run(sql`CREATE INDEX IF NOT EXISTS idx_conj_review_due ON conjugation_review_states(user_id, due_at)`);
+  db.run(sql`CREATE UNIQUE INDEX IF NOT EXISTS idx_conj_review_unique ON conjugation_review_states(user_id, verb_id, pronoun, tense)`);
+  db.run(sql`CREATE INDEX IF NOT EXISTS idx_conj_attempts_user ON conjugation_attempts(user_id, created_at)`);
+  db.run(sql`CREATE INDEX IF NOT EXISTS idx_conj_attempts_verb ON conjugation_attempts(verb_id, pronoun)`);
 }

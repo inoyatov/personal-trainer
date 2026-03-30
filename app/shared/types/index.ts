@@ -15,7 +15,9 @@ export type ExerciseType =
   | 'translation-choice'
   | 'sentence-transformation'
   | 'dictation-recall'
-  | 'grammar-drill';
+  | 'grammar-drill'
+  | 'conjugation-typed'
+  | 'conjugation-in-sentence';
 
 export type ClassGroupType = 'vocabulary' | 'grammar' | 'dialog' | 'writing';
 

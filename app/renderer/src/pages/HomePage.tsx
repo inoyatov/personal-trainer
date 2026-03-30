@@ -18,7 +18,7 @@ export function HomePage() {
       </h2>
 
       {/* Stats cards */}
-      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5">
         <StatCard
           label="Due Reviews"
           value={stats?.dueReviewCount ?? 0}
@@ -27,6 +27,7 @@ export function HomePage() {
         />
         <StatCard label="Today's Accuracy" value={stats?.todayTotal ? `${stats.todayAccuracy}%` : '--'} colorVar="--color-accent" />
         <StatCard label="Items Learned" value={stats?.totalItemsLearned ?? 0} colorVar="--color-success" />
+        <StatCard label="Verbs Practiced" value={stats?.verbsPracticed ?? 0} colorVar="--color-badge-orange-text" />
         <StatCard label="Sessions Today" value={stats?.todaySessionCount ?? 0} colorVar="--color-badge-purple-text" />
       </div>
 

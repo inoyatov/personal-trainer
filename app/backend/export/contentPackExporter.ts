@@ -6,6 +6,7 @@ import {
 import { vocabularyItems, sentenceItems, dialogs, dialogTurns } from '../db/schema/content';
 import { grammarPatterns } from '../db/schema/grammar';
 import { writingPrompts } from '../db/schema/writing';
+import { verbs, verbConjugationSets, verbConjugationForms, lessonVerbs, sentenceVerbs } from '../db/schema/verbs';
 import { eq } from 'drizzle-orm';
 
 /**
@@ -53,6 +54,27 @@ export function exportCourse(db: AppDatabase, courseId: string): ContentPack | n
     db.select().from(writingPrompts).where(eq(writingPrompts.lessonId, lesId)).all(),
   );
 
+  // Verb data
+  const allLessonVerbs = lessonIds.flatMap((lesId) =>
+    db.select().from(lessonVerbs).where(eq(lessonVerbs.lessonId, lesId)).all(),
+  );
+  const verbIds = [...new Set(allLessonVerbs.map((lv) => lv.verbId))];
+  const allVerbs = verbIds.flatMap((vId) => {
+    const v = db.select().from(verbs).where(eq(verbs.id, vId)).get();
+    return v ? [v] : [];
+  });
+  const allVerbConjugationSets = verbIds.flatMap((vId) =>
+    db.select().from(verbConjugationSets).where(eq(verbConjugationSets.verbId, vId)).all(),
+  );
+  const conjSetIds = allVerbConjugationSets.map((s) => s.id);
+  const allVerbConjugationForms = conjSetIds.flatMap((csId) =>
+    db.select().from(verbConjugationForms).where(eq(verbConjugationForms.conjugationSetId, csId)).all(),
+  );
+  const sentenceIds = allSentences.map((s) => s.id);
+  const allSentenceVerbs = sentenceIds.flatMap((sId) =>
+    db.select().from(sentenceVerbs).where(eq(sentenceVerbs.sentenceId, sId)).all(),
+  );
+
   return {
     manifest: {
       name: course.title,
@@ -71,6 +93,11 @@ export function exportCourse(db: AppDatabase, courseId: string): ContentPack | n
     dialogTurns: allDialogTurns,
     grammarPatterns: allGrammarPatterns,
     writingPrompts: allWritingPrompts,
+    verbs: allVerbs,
+    verbConjugationSets: allVerbConjugationSets,
+    verbConjugationForms: allVerbConjugationForms,
+    lessonVerbs: allLessonVerbs,
+    sentenceVerbs: allSentenceVerbs,
   };
 }
 
@@ -103,6 +130,24 @@ export function exportLesson(db: AppDatabase, lessonId: string): ContentPack | n
   const gps = db.select().from(grammarPatterns).where(eq(grammarPatterns.lessonId, lessonId)).all();
   const wps = db.select().from(writingPrompts).where(eq(writingPrompts.lessonId, lessonId)).all();
 
+  // Verb data
+  const lvs = db.select().from(lessonVerbs).where(eq(lessonVerbs.lessonId, lessonId)).all();
+  const vIds = [...new Set(lvs.map((lv) => lv.verbId))];
+  const vbs = vIds.flatMap((vId) => {
+    const v = db.select().from(verbs).where(eq(verbs.id, vId)).get();
+    return v ? [v] : [];
+  });
+  const vcSets = vIds.flatMap((vId) =>
+    db.select().from(verbConjugationSets).where(eq(verbConjugationSets.verbId, vId)).all(),
+  );
+  const vcForms = vcSets.flatMap((s) =>
+    db.select().from(verbConjugationForms).where(eq(verbConjugationForms.conjugationSetId, s.id)).all(),
+  );
+  const sentIds = sents.map((s) => s.id);
+  const svs = sentIds.flatMap((sId) =>
+    db.select().from(sentenceVerbs).where(eq(sentenceVerbs.sentenceId, sId)).all(),
+  );
+
   return {
     manifest: {
       name: lesson.title,
@@ -121,5 +166,10 @@ export function exportLesson(db: AppDatabase, lessonId: string): ContentPack | n
     dialogTurns: dts,
     grammarPatterns: gps,
     writingPrompts: wps,
+    verbs: vbs,
+    verbConjugationSets: vcSets,
+    verbConjugationForms: vcForms,
+    lessonVerbs: lvs,
+    sentenceVerbs: svs,
   };
 }

@@ -134,6 +134,27 @@ const api = {
     exportPack: (type: 'course' | 'lesson', id: string) =>
       ipcRenderer.invoke('export:contentPack', { type, id }),
   },
+  conjugation: {
+    getLessonVerbs: (lessonId: string) =>
+      ipcRenderer.invoke('conjugation:getLessonVerbs', { lessonId }),
+    getForms: (verbId: string) =>
+      ipcRenderer.invoke('conjugation:getForms', { verbId }),
+    generateExercises: (lessonId: string, maxExercises?: number) =>
+      ipcRenderer.invoke('conjugation:generateExercises', { lessonId, maxExercises }),
+    submitAnswer: (data: {
+      verbId: string;
+      pronoun: string;
+      userAnswer: string;
+      expectedForm: string;
+      responseTimeMs: number;
+      hintUsed?: boolean;
+      tense?: string;
+    }) => ipcRenderer.invoke('conjugation:submitAnswer', data),
+    getDueReviews: () =>
+      ipcRenderer.invoke('conjugation:getDueReviews'),
+    getStats: () =>
+      ipcRenderer.invoke('conjugation:getStats'),
+  },
 } as const;
 
 contextBridge.exposeInMainWorld('api', api);

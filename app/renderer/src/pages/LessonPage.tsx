@@ -11,7 +11,9 @@ import { VocabularyList } from '../components/content/VocabularyList';
 import { SentenceList } from '../components/content/SentenceList';
 import { useLessonContent, useVocabulary } from '../hooks/useContentQueries';
 import { SessionModeSelector, type SessionModeId } from '../features/study/components/SessionModeSelector';
+import { VerbCard } from '../features/conjugation/components/VerbCard';
 import { api } from '../lib/api';
+import { useQuery } from '@tanstack/react-query';
 
 export function LessonPage() {
   const { lessonId } = useParams<{ lessonId: string }>();
@@ -25,6 +27,14 @@ export function LessonPage() {
   const { data: vocabulary } = useVocabulary(
     activeGroup?.type === 'vocabulary' ? activeGroupId ?? undefined : undefined,
   );
+
+  // Fetch verbs for this lesson
+  const { data: lessonVerbs } = useQuery({
+    queryKey: ['lessonVerbs', lessonId],
+    queryFn: () => api.conjugation.getLessonVerbs(lessonId!),
+    enabled: !!lessonId,
+  });
+  const hasVerbs = (lessonVerbs?.length ?? 0) > 0;
 
   React.useEffect(() => {
     if (data?.classGroups?.length && !activeGroupId) {
@@ -74,6 +84,37 @@ export function LessonPage() {
           onSelect={(mode: SessionModeId) => navigate(`/study/${lessonId}?mode=${mode}`)}
         />
       </div>
+
+      {/* Conjugation practice button */}
+      {hasVerbs && (
+        <div className="mb-6">
+          <button
+            onClick={() => navigate(`/conjugation/${lessonId}`)}
+            className="rounded-lg px-5 py-2.5 text-sm font-medium"
+            style={{ backgroundColor: 'var(--color-badge-orange)', color: 'var(--color-badge-orange-text)' }}
+          >
+            Practice Conjugation ({lessonVerbs!.filter((v: any) => v.role === 'target' || v.role === 'focus_irregular').length} verbs)
+          </button>
+        </div>
+      )}
+
+      {/* Verb cards */}
+      {hasVerbs && lessonVerbs && (
+        <div className="mb-6 space-y-2">
+          <h3 className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>Verbs in this lesson</h3>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {lessonVerbs.map((lv: any) => lv.verb && (
+              <VerbCard
+                key={lv.verb.id}
+                infinitive={lv.verb.infinitive}
+                translation={lv.verb.translation}
+                type={lv.verb.type}
+                formsMap={lv.formsMap}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {activeGroup?.type === 'vocabulary' && vocabulary && <VocabularyList items={vocabulary} />}
       {activeGroup?.type === 'vocabulary' && vocabulary && vocabulary.length === 0 && <EmptyState title="No vocabulary items" />}

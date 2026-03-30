@@ -33,3 +33,13 @@ export {
   sentenceGrammarPattern,
   itemTags,
 } from './relations';
+
+export {
+  verbs,
+  verbConjugationSets,
+  verbConjugationForms,
+  lessonVerbs,
+  sentenceVerbs,
+  conjugationReviewStates,
+  conjugationAttempts,
+} from './verbs';

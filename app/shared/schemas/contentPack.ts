@@ -94,6 +94,49 @@ export const writingPromptSchema = z.object({
   difficulty: z.number().default(1.0),
 });
 
+// --- Verb schemas ---
+
+export const verbSchema = z.object({
+  id: z.string().min(1),
+  infinitive: z.string().min(1),
+  translation: z.string().min(1),
+  type: z.enum(['regular', 'irregular']).default('regular'),
+  isSeparable: z.boolean().default(false),
+  usageNotes: z.string().nullable().default(null),
+  difficulty: z.number().default(1.0),
+});
+
+export const verbConjugationSetSchema = z.object({
+  id: z.string().min(1),
+  verbId: z.string().min(1),
+  tense: z.string().default('present'),
+  mood: z.string().default('indicative'),
+  notes: z.string().nullable().default(null),
+});
+
+export const verbConjugationFormSchema = z.object({
+  id: z.string().min(1),
+  conjugationSetId: z.string().min(1),
+  pronoun: z.enum(['IK', 'JIJ', 'U', 'HIJ', 'ZIJ_SG', 'HET', 'WIJ', 'JULLIE', 'ZIJ_PL']),
+  form: z.string().min(1),
+  alternateFormsJson: z.string().nullable().default(null),
+  isPreferred: z.boolean().default(true),
+});
+
+export const lessonVerbSchema = z.object({
+  lessonId: z.string().min(1),
+  verbId: z.string().min(1),
+  role: z.enum(['target', 'supporting', 'focus_irregular']),
+  orderIndex: z.number().int().default(0),
+});
+
+export const sentenceVerbSchema = z.object({
+  sentenceId: z.string().min(1),
+  verbId: z.string().min(1),
+  surfaceForm: z.string().min(1),
+  isFinite: z.boolean().default(true),
+});
+
 // --- Content pack schema ---
 
 export const contentPackSchema = z.object({
@@ -114,6 +157,11 @@ export const contentPackSchema = z.object({
   dialogTurns: z.array(dialogTurnSchema).default([]),
   grammarPatterns: z.array(grammarPatternSchema).default([]),
   writingPrompts: z.array(writingPromptSchema).default([]),
+  verbs: z.array(verbSchema).default([]),
+  verbConjugationSets: z.array(verbConjugationSetSchema).default([]),
+  verbConjugationForms: z.array(verbConjugationFormSchema).default([]),
+  lessonVerbs: z.array(lessonVerbSchema).default([]),
+  sentenceVerbs: z.array(sentenceVerbSchema).default([]),
 });
 
 export type ContentPack = z.infer<typeof contentPackSchema>;

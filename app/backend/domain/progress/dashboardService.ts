@@ -1,7 +1,7 @@
 import type { ReviewRepository } from '../../db/repositories/reviewRepository';
 import type { SessionRepository } from '../../db/repositories/sessionRepository';
 import type { AppDatabase } from '../../db/index';
-import { sessions, sessionAnswers } from '../../db/schema';
+import { sessions, sessionAnswers, conjugationAttempts } from '../../db/schema';
 import { eq, and, gte, desc } from 'drizzle-orm';
 
 export interface DashboardStats {
@@ -12,6 +12,8 @@ export interface DashboardStats {
   todayAccuracy: number;
   totalItemsLearned: number;
   totalSessions: number;
+  verbsPracticed: number;
+  conjugationAccuracy: number;
 }
 
 export interface RecentSession {
@@ -73,6 +75,19 @@ export function createDashboardService(
         .where(eq(sessions.userId, userId))
         .all();
 
+      // Verb conjugation stats
+      const allConjAttempts = db
+        .select()
+        .from(conjugationAttempts)
+        .where(eq(conjugationAttempts.userId, userId))
+        .all();
+      const verbsPracticed = new Set(allConjAttempts.map((a) => a.verbId)).size;
+      const conjCorrect = allConjAttempts.filter((a) => a.correct).length;
+      const conjugationAccuracy =
+        allConjAttempts.length > 0
+          ? Math.round((conjCorrect / allConjAttempts.length) * 100)
+          : 0;
+
       return {
         dueReviewCount,
         todaySessionCount,
@@ -81,6 +96,8 @@ export function createDashboardService(
         todayAccuracy,
         totalItemsLearned,
         totalSessions: allSessions.length,
+        verbsPracticed,
+        conjugationAccuracy,
       };
     },
 
