@@ -13,17 +13,17 @@ export const courseSchema = z.object({
 
 export const moduleSchema = z.object({
   id: z.string().min(1),
-  courseId: z.string().min(1),
+  courseId: z.string().default(''),
   title: z.string().min(1),
-  orderIndex: z.number().int().min(0),
+  orderIndex: z.number().int().min(0).default(0),
 });
 
 export const lessonSchema = z.object({
   id: z.string().min(1),
-  moduleId: z.string().min(1),
+  moduleId: z.string().default('will-be-overridden'),
   title: z.string().min(1),
   description: z.string().default(''),
-  orderIndex: z.number().int().min(0),
+  orderIndex: z.number().int().min(0).default(0),
   estimatedMinutes: z.number().int().min(1).default(15),
 });
 

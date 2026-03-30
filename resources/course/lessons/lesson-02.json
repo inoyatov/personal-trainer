@@ -1,0 +1,84 @@
+{
+  "lesson": {
+    "id": "lesson_1_4",
+    "module_id": "module_1",
+    "title": "Basiswerkwoorden (Basic verbs)",
+    "description": "Learn essential Dutch verbs used in everyday communication.",
+    "order": 4
+  },
+  "vocabulary_items": [
+    { "id": "v_1_4_1", "word": "zijn", "translation": "to be", "example": "Ik ben moe." },
+    { "id": "v_1_4_2", "word": "hebben", "translation": "to have", "example": "Ik heb een fiets." },
+    { "id": "v_1_4_3", "word": "gaan", "translation": "to go", "example": "Ik ga naar huis." },
+    { "id": "v_1_4_4", "word": "komen", "translation": "to come", "example": "Kom je morgen?" },
+    { "id": "v_1_4_5", "word": "doen", "translation": "to do", "example": "Wat doe je?" },
+    { "id": "v_1_4_6", "word": "maken", "translation": "to make", "example": "Ik maak eten." },
+    { "id": "v_1_4_7", "word": "zeggen", "translation": "to say", "example": "Hij zegt iets." },
+    { "id": "v_1_4_8", "word": "zien", "translation": "to see", "example": "Ik zie jou." },
+    { "id": "v_1_4_9", "word": "weten", "translation": "to know (fact)", "example": "Ik weet het." },
+    { "id": "v_1_4_10", "word": "kennen", "translation": "to know (person)", "example": "Ik ken hem." },
+    { "id": "v_1_4_11", "word": "werken", "translation": "to work", "example": "Ik werk vandaag." },
+    { "id": "v_1_4_12", "word": "wonen", "translation": "to live", "example": "Ik woon in Amsterdam." },
+    { "id": "v_1_4_13", "word": "leren", "translation": "to learn", "example": "Ik leer Nederlands." },
+    { "id": "v_1_4_14", "word": "spreken", "translation": "to speak", "example": "Ik spreek een beetje Nederlands." },
+    { "id": "v_1_4_15", "word": "eten", "translation": "to eat", "example": "Ik eet brood." },
+    { "id": "v_1_4_16", "word": "drinken", "translation": "to drink", "example": "Ik drink water." },
+    { "id": "v_1_4_17", "word": "vragen", "translation": "to ask", "example": "Ik vraag iets." },
+    { "id": "v_1_4_18", "word": "antwoorden", "translation": "to answer", "example": "Hij antwoordt snel." },
+    { "id": "v_1_4_19", "word": "blijven", "translation": "to stay", "example": "Ik blijf thuis." },
+    { "id": "v_1_4_20", "word": "beginnen", "translation": "to start", "example": "We beginnen nu." }
+  ],
+  "exercises": [
+    {
+      "id": "ex_1_4_1",
+      "type": "multiple_choice",
+      "question": "Ik ___ in Amsterdam.",
+      "options": ["woon", "werk", "ga", "kom"],
+      "correct_answer": "woon"
+    },
+    {
+      "id": "ex_1_4_2",
+      "type": "multiple_choice",
+      "question": "Wat ___ je?",
+      "options": ["doet", "maak", "zeg", "zie"],
+      "correct_answer": "doet"
+    },
+    {
+      "id": "ex_1_4_3",
+      "type": "fill_in_blank",
+      "question": "Ik ___ Nederlands. (to learn)",
+      "correct_answer": "leer"
+    },
+    {
+      "id": "ex_1_4_4",
+      "type": "fill_in_blank",
+      "question": "Wij ___ nu. (to start)",
+      "correct_answer": "beginnen"
+    },
+    {
+      "id": "ex_1_4_5",
+      "type": "translation",
+      "question": "Translate: I eat bread.",
+      "correct_answer": "Ik eet brood."
+    },
+    {
+      "id": "ex_1_4_6",
+      "type": "translation",
+      "question": "Translate: He drinks water.",
+      "correct_answer": "Hij drinkt water."
+    },
+    {
+      "id": "ex_1_4_7",
+      "type": "multiple_choice",
+      "question": "Ik ___ het antwoord.",
+      "options": ["weet", "ken", "zie", "zeg"],
+      "correct_answer": "weet"
+    },
+    {
+      "id": "ex_1_4_8",
+      "type": "fill_in_blank",
+      "question": "Kom je morgen? → Ja, ik ___.",
+      "correct_answer": "kom"
+    }
+  ]
+}
