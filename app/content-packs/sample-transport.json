@@ -1,0 +1,180 @@
+{
+  "manifest": {
+    "name": "Transport & Reizen",
+    "version": "1.0",
+    "description": "Dutch A2 vocabulary for transport and travel",
+    "author": "Sample",
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  },
+  "courses": [
+    {
+      "id": "course-transport",
+      "title": "Transport & Reizen",
+      "description": "Learn Dutch vocabulary for getting around",
+      "targetLevel": "A2",
+      "languageCode": "nl",
+      "version": "1.0"
+    }
+  ],
+  "modules": [
+    {
+      "id": "mod-transport",
+      "courseId": "course-transport",
+      "title": "Openbaar Vervoer",
+      "orderIndex": 0
+    }
+  ],
+  "lessons": [
+    {
+      "id": "les-train",
+      "moduleId": "mod-transport",
+      "title": "Met de trein",
+      "description": "Taking the train in the Netherlands",
+      "orderIndex": 0,
+      "estimatedMinutes": 15
+    }
+  ],
+  "classGroups": [
+    {
+      "id": "cg-train-vocab",
+      "lessonId": "les-train",
+      "type": "vocabulary",
+      "title": "Woordenschat",
+      "orderIndex": 0
+    },
+    {
+      "id": "cg-train-dialog",
+      "lessonId": "les-train",
+      "type": "dialog",
+      "title": "Dialoog",
+      "orderIndex": 1
+    }
+  ],
+  "vocabulary": [
+    {
+      "id": "vt-1",
+      "lemma": "trein",
+      "displayText": "de trein",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "train",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.0
+    },
+    {
+      "id": "vt-2",
+      "lemma": "station",
+      "displayText": "het station",
+      "article": "het",
+      "partOfSpeech": "noun",
+      "translation": "station",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.0
+    },
+    {
+      "id": "vt-3",
+      "lemma": "kaartje",
+      "displayText": "het kaartje",
+      "article": "het",
+      "partOfSpeech": "noun",
+      "translation": "ticket",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.1
+    },
+    {
+      "id": "vt-4",
+      "lemma": "perron",
+      "displayText": "het perron",
+      "article": "het",
+      "partOfSpeech": "noun",
+      "translation": "platform",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.2
+    },
+    {
+      "id": "vt-5",
+      "lemma": "vertraging",
+      "displayText": "de vertraging",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "delay",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.4
+    }
+  ],
+  "sentences": [
+    {
+      "id": "st-1",
+      "text": "De trein naar Amsterdam vertrekt om negen uur.",
+      "translation": "The train to Amsterdam departs at nine o'clock.",
+      "lessonId": "les-train",
+      "classGroupId": "cg-train-vocab"
+    },
+    {
+      "id": "st-2",
+      "text": "Ik wil graag een kaartje naar Utrecht.",
+      "translation": "I would like a ticket to Utrecht.",
+      "lessonId": "les-train",
+      "classGroupId": "cg-train-vocab"
+    },
+    {
+      "id": "st-3",
+      "text": "Op welk perron vertrekt de trein?",
+      "translation": "From which platform does the train depart?",
+      "lessonId": "les-train",
+      "classGroupId": "cg-train-vocab"
+    },
+    {
+      "id": "st-4",
+      "text": "Er is helaas vertraging op dit traject.",
+      "translation": "There is unfortunately a delay on this route.",
+      "lessonId": "les-train",
+      "classGroupId": "cg-train-vocab"
+    }
+  ],
+  "dialogs": [
+    {
+      "id": "dt-train",
+      "lessonId": "les-train",
+      "title": "Bij het loket",
+      "scenario": "Buying a train ticket at the counter",
+      "classGroupId": "cg-train-dialog"
+    }
+  ],
+  "dialogTurns": [
+    {
+      "id": "dtt-1",
+      "dialogId": "dt-train",
+      "speaker": "Medewerker",
+      "text": "Goedemorgen, waarmee kan ik u helpen?",
+      "translation": "Good morning, how can I help you?",
+      "orderIndex": 0
+    },
+    {
+      "id": "dtt-2",
+      "dialogId": "dt-train",
+      "speaker": "Reiziger",
+      "text": "Ik wil graag een kaartje naar Utrecht.",
+      "translation": "I would like a ticket to Utrecht.",
+      "orderIndex": 1
+    },
+    {
+      "id": "dtt-3",
+      "dialogId": "dt-train",
+      "speaker": "Medewerker",
+      "text": "Enkele reis of retour?",
+      "translation": "Single or return?",
+      "orderIndex": 2
+    },
+    {
+      "id": "dtt-4",
+      "dialogId": "dt-train",
+      "speaker": "Reiziger",
+      "text": "Retour alstublieft. Van welk perron vertrekt de trein?",
+      "translation": "Return please. From which platform does the train depart?",
+      "orderIndex": 3
+    }
+  ],
+  "grammarPatterns": [],
+  "writingPrompts": []
+}

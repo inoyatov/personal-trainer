@@ -1,0 +1,163 @@
+{
+  "lesson": {
+    "id": "les-wonen",
+    "moduleId": "will-be-overridden",
+    "title": "Wonen (Housing)",
+    "description": "Learn vocabulary about housing and moving",
+    "orderIndex": 0,
+    "estimatedMinutes": 15
+  },
+  "classGroups": [
+    {
+      "id": "cg-wonen-vocab",
+      "lessonId": "les-wonen",
+      "type": "vocabulary",
+      "title": "Woordenschat",
+      "orderIndex": 0
+    },
+    {
+      "id": "cg-wonen-dialog",
+      "lessonId": "les-wonen",
+      "type": "dialog",
+      "title": "Dialoog",
+      "orderIndex": 1
+    }
+  ],
+  "vocabulary": [
+    {
+      "id": "vw-1",
+      "lemma": "huis",
+      "displayText": "het huis",
+      "article": "het",
+      "partOfSpeech": "noun",
+      "translation": "house",
+      "classGroupId": "cg-wonen-vocab",
+      "difficulty": 1.0
+    },
+    {
+      "id": "vw-2",
+      "lemma": "kamer",
+      "displayText": "de kamer",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "room",
+      "classGroupId": "cg-wonen-vocab",
+      "difficulty": 1.0
+    },
+    {
+      "id": "vw-3",
+      "lemma": "huur",
+      "displayText": "de huur",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "rent",
+      "classGroupId": "cg-wonen-vocab",
+      "difficulty": 1.2
+    },
+    {
+      "id": "vw-4",
+      "lemma": "verhuizen",
+      "displayText": "verhuizen",
+      "article": null,
+      "partOfSpeech": "verb",
+      "translation": "to move (house)",
+      "classGroupId": "cg-wonen-vocab",
+      "difficulty": 1.3
+    },
+    {
+      "id": "vw-5",
+      "lemma": "sleutel",
+      "displayText": "de sleutel",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "key",
+      "classGroupId": "cg-wonen-vocab",
+      "difficulty": 1.1
+    },
+    {
+      "id": "vw-6",
+      "lemma": "tuin",
+      "displayText": "de tuin",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "garden",
+      "classGroupId": "cg-wonen-vocab",
+      "difficulty": 1.0
+    }
+  ],
+  "sentences": [
+    {
+      "id": "sw-1",
+      "text": "Wij zoeken een nieuw huis met een tuin.",
+      "translation": "We are looking for a new house with a garden.",
+      "lessonId": "les-wonen",
+      "classGroupId": "cg-wonen-vocab"
+    },
+    {
+      "id": "sw-2",
+      "text": "De huur is vijfhonderd euro per maand.",
+      "translation": "The rent is five hundred euros per month.",
+      "lessonId": "les-wonen",
+      "classGroupId": "cg-wonen-vocab"
+    },
+    {
+      "id": "sw-3",
+      "text": "Wij gaan volgende maand verhuizen.",
+      "translation": "We are going to move next month.",
+      "lessonId": "les-wonen",
+      "classGroupId": "cg-wonen-vocab"
+    },
+    {
+      "id": "sw-4",
+      "text": "Mag ik de sleutel van de kamer?",
+      "translation": "May I have the key to the room?",
+      "lessonId": "les-wonen",
+      "classGroupId": "cg-wonen-vocab"
+    }
+  ],
+  "dialogs": [
+    {
+      "id": "dw-1",
+      "lessonId": "les-wonen",
+      "title": "Bij de makelaar",
+      "scenario": "Visiting a real estate agent to find a house",
+      "classGroupId": "cg-wonen-dialog"
+    }
+  ],
+  "dialogTurns": [
+    {
+      "id": "dwt-1",
+      "dialogId": "dw-1",
+      "speaker": "Makelaar",
+      "text": "Goedemiddag, waarnaar bent u op zoek?",
+      "translation": "Good afternoon, what are you looking for?",
+      "orderIndex": 0
+    },
+    {
+      "id": "dwt-2",
+      "dialogId": "dw-1",
+      "speaker": "Klant",
+      "text": "Wij zoeken een huis met drie kamers en een tuin.",
+      "translation": "We are looking for a house with three rooms and a garden.",
+      "orderIndex": 1
+    },
+    {
+      "id": "dwt-3",
+      "dialogId": "dw-1",
+      "speaker": "Makelaar",
+      "text": "Hoeveel huur wilt u maximaal betalen?",
+      "translation": "How much rent do you want to pay at most?",
+      "orderIndex": 2
+    },
+    {
+      "id": "dwt-4",
+      "dialogId": "dw-1",
+      "speaker": "Klant",
+      "text": "Maximaal achthonderd euro per maand.",
+      "translation": "Maximum eight hundred euros per month.",
+      "orderIndex": 3
+    }
+  ],
+  "grammarPatterns": [],
+  "writingPrompts": []
+}

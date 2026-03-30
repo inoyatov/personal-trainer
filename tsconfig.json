@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "commonjs",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "outDir": "dist",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "paths": {
+      "@/*": ["app/renderer/src/*"],
+      "@shared/*": ["app/shared/*"],
+      "@backend/*": ["app/backend/*"]
+    }
+  },
+  "include": ["app/**/*.ts", "app/**/*.tsx", "forge.env.d.ts"],
+  "exclude": ["node_modules", "dist", ".vite"]
+}

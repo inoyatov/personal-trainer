@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/* Default theme variables (Default Light) — overridden by JS on load */
+:root {
+  --color-bg-primary: #f9fafb;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #f3f4f6;
+  --color-bg-hover: #f3f4f6;
+  --color-bg-active: #dbeafe;
+  --color-bg-sidebar: #ffffff;
+  --color-bg-input: #ffffff;
+
+  --color-border: #e5e7eb;
+  --color-border-active: #2563eb;
+
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #9ca3af;
+  --color-text-inverse: #ffffff;
+
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-light: #dbeafe;
+  --color-accent-text: #1e40af;
+
+  --color-success: #16a34a;
+  --color-success-light: #f0fdf4;
+  --color-success-text: #15803d;
+  --color-error: #dc2626;
+  --color-error-light: #fef2f2;
+  --color-error-text: #b91c1c;
+  --color-warning: #d97706;
+  --color-warning-light: #fffbeb;
+  --color-warning-text: #b45309;
+
+  --color-badge-blue: #dbeafe;
+  --color-badge-blue-text: #1e40af;
+  --color-badge-green: #dcfce7;
+  --color-badge-green-text: #166534;
+  --color-badge-purple: #f3e8ff;
+  --color-badge-purple-text: #7c3aed;
+  --color-badge-orange: #fff7ed;
+  --color-badge-orange-text: #c2410c;
+}
+
+body {
+  margin: 0;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+/* Themed utility classes */
+.themed-bg { background-color: var(--color-bg-primary); }
+.themed-bg-secondary { background-color: var(--color-bg-secondary); }
+.themed-bg-tertiary { background-color: var(--color-bg-tertiary); }
+.themed-bg-hover:hover { background-color: var(--color-bg-hover); }
+.themed-bg-sidebar { background-color: var(--color-bg-sidebar); }
+.themed-bg-input { background-color: var(--color-bg-input); }
+.themed-bg-accent { background-color: var(--color-accent); }
+.themed-bg-accent-hover:hover { background-color: var(--color-accent-hover); }
+.themed-bg-accent-light { background-color: var(--color-accent-light); }
+.themed-bg-success-light { background-color: var(--color-success-light); }
+.themed-bg-error-light { background-color: var(--color-error-light); }
+.themed-bg-warning-light { background-color: var(--color-warning-light); }
+
+.themed-text { color: var(--color-text-primary); }
+.themed-text-secondary { color: var(--color-text-secondary); }
+.themed-text-tertiary { color: var(--color-text-tertiary); }
+.themed-text-inverse { color: var(--color-text-inverse); }
+.themed-text-accent { color: var(--color-accent-text); }
+.themed-text-success { color: var(--color-success-text); }
+.themed-text-error { color: var(--color-error-text); }
+
+.themed-border { border-color: var(--color-border); }
+.themed-border-active { border-color: var(--color-border-active); }
+
+.themed-ring-accent:focus { --tw-ring-color: var(--color-accent); }
