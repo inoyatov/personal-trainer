@@ -6,10 +6,36 @@ import { MakerRpm } from '@electron-forge/maker-rpm';
 import { VitePlugin } from '@electron-forge/plugin-vite';
 import { FusesPlugin } from '@electron-forge/plugin-fuses';
 import { FuseV1Options, FuseVersion } from '@electron/fuses';
+import path from 'node:path';
+import fs from 'node:fs';
+
+function copyNativeModules(buildPath: string) {
+  const nativeModules = ['better-sqlite3', 'bindings', 'file-uri-to-path', 'prebuild-install', 'node-addon-api'];
+  const srcNodeModules = path.resolve(__dirname, 'node_modules');
+  const destNodeModules = path.join(buildPath, 'node_modules');
+
+  for (const mod of nativeModules) {
+    const src = path.join(srcNodeModules, mod);
+    const dest = path.join(destNodeModules, mod);
+    if (fs.existsSync(src)) {
+      fs.cpSync(src, dest, { recursive: true });
+    }
+  }
+}
 
 const config: ForgeConfig = {
   packagerConfig: {
-    asar: true,
+    asar: false,
+    afterCopy: [
+      (buildPath: string, _electronVersion: string, _platform: string, _arch: string, callback: (err?: Error) => void) => {
+        try {
+          copyNativeModules(buildPath);
+          callback();
+        } catch (err) {
+          callback(err as Error);
+        }
+      },
+    ],
   },
   rebuildConfig: {},
   makers: [
@@ -45,8 +71,8 @@ const config: ForgeConfig = {
       [FuseV1Options.EnableCookieEncryption]: true,
       [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
       [FuseV1Options.EnableNodeCliInspectArguments]: false,
-      [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
-      [FuseV1Options.OnlyLoadAppFromAsar]: true,
+      [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: false,
+      [FuseV1Options.OnlyLoadAppFromAsar]: false,
     }),
   ],
 };
