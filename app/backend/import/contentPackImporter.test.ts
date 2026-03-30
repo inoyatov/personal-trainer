@@ -65,15 +65,15 @@ describe('contentPackImporter', () => {
     expect(result.errors.length).toBeGreaterThan(0);
   });
 
-  it('should rollback on duplicate ID error', () => {
+  it('should upsert on re-import (no duplicate error)', () => {
     // Import once
     importContentPack(db, samplePack);
 
-    // Import same pack again — should fail due to duplicate primary keys
+    // Import same pack again — should succeed (upsert behavior)
     const result = importContentPack(db, samplePack);
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
 
-    // Original data should still be intact
+    // Should still have exactly 1 course (not 2)
     const allCourses = db.select().from(courses).all();
     expect(allCourses).toHaveLength(1);
   });

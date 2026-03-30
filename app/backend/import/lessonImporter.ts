@@ -73,57 +73,58 @@ export function importLesson(
         ? Math.max(...existingLessons.map((l) => l.orderIndex)) + 1
         : 0;
 
-    // Insert lesson with overridden moduleId and orderIndex
+    // Upsert helper: delete existing by ID, then insert
+    function upsert(table: any, idField: any, data: any) {
+      const record = sanitizeRecord(data);
+      if (record.id) {
+        db.delete(table).where(eq(idField, record.id)).run();
+      }
+      db.insert(table).values(record).run();
+    }
+
+    // Upsert lesson with overridden moduleId and orderIndex
     const lessonData = sanitizeRecord({
       ...pack.lesson,
       moduleId: targetModuleId,
       orderIndex: nextOrder,
     });
+    // Delete existing lesson (cascade handles children)
+    db.delete(lessons).where(eq(lessons.id, pack.lesson.id)).run();
     db.insert(lessons).values(lessonData).run();
     const lessonId = pack.lesson.id;
 
     for (const cg of pack.classGroups) {
-      db.insert(classGroups)
-        .values(sanitizeRecord({ ...cg, lessonId }))
-        .run();
+      upsert(classGroups, classGroups.id, { ...cg, lessonId });
       counts.classGroups++;
     }
 
     for (const v of pack.vocabulary) {
-      db.insert(vocabularyItems).values(sanitizeRecord(v)).run();
+      upsert(vocabularyItems, vocabularyItems.id, v);
       counts.vocabulary++;
     }
 
     for (const s of pack.sentences) {
-      db.insert(sentenceItems)
-        .values(sanitizeRecord({ ...s, lessonId }))
-        .run();
+      upsert(sentenceItems, sentenceItems.id, { ...s, lessonId });
       counts.sentences++;
     }
 
     for (const d of pack.dialogs) {
-      db.insert(dialogs)
-        .values(sanitizeRecord({ ...d, lessonId }))
-        .run();
+      upsert(dialogs, dialogs.id, { ...d, lessonId });
       counts.dialogs++;
     }
 
     for (const dt of pack.dialogTurns) {
-      db.insert(dialogTurns).values(sanitizeRecord(dt)).run();
+      upsert(dialogTurns, dialogTurns.id, dt);
       counts.dialogTurns++;
     }
 
     for (const gp of pack.grammarPatterns) {
-      db.insert(grammarPatterns)
-        .values(sanitizeRecord({ ...gp, lessonId }))
-        .run();
+      upsert(grammarPatterns, grammarPatterns.id, { ...gp, lessonId });
       counts.grammarPatterns++;
     }
 
     for (const wp of pack.writingPrompts) {
-      db.insert(writingPrompts)
-        .values(sanitizeRecord({ ...wp, lessonId }))
-        .run();
+      upsert(writingPrompts, writingPrompts.id, { ...wp, lessonId });
       counts.writingPrompts++;
     }
 

@@ -7,7 +7,7 @@ import { vocabularyItems, sentenceItems, dialogs, dialogTurns } from '../db/sche
 import { grammarPatterns } from '../db/schema/grammar';
 import { writingPrompts } from '../db/schema/writing';
 import { verbs, verbConjugationSets, verbConjugationForms, lessonVerbs, sentenceVerbs } from '../db/schema/verbs';
-import { sql } from 'drizzle-orm';
+import { sql, eq } from 'drizzle-orm';
 
 export interface ImportResult {
   success: boolean;
@@ -81,80 +81,98 @@ export function importContentPack(
     // Use a transaction for atomicity
     db.run(sql`BEGIN TRANSACTION`);
 
-    // Insert in dependency order
+    // Upsert helper: delete existing by ID, then insert
+    function upsert(table: any, idField: any, data: any) {
+      const record = sanitizeRecord(data);
+      if (record.id) {
+        db.delete(table).where(eq(idField, record.id)).run();
+      }
+      db.insert(table).values(record).run();
+    }
+
+    // Insert in dependency order (upsert: replaces existing on re-import)
     for (const c of pack.courses) {
-      db.insert(courses).values(sanitizeRecord(c)).run();
+      upsert(courses, courses.id, c);
       counts.courses++;
     }
 
     for (const m of pack.modules) {
-      db.insert(modules).values(sanitizeRecord(m)).run();
+      upsert(modules, modules.id, m);
       counts.modules++;
     }
 
     for (const l of pack.lessons) {
-      db.insert(lessons).values(sanitizeRecord(l)).run();
+      upsert(lessons, lessons.id, l);
       counts.lessons++;
     }
 
     for (const cg of pack.classGroups) {
-      db.insert(classGroups).values(sanitizeRecord(cg)).run();
+      upsert(classGroups, classGroups.id, cg);
       counts.classGroups++;
     }
 
     for (const v of pack.vocabulary) {
-      db.insert(vocabularyItems).values(sanitizeRecord(v)).run();
+      upsert(vocabularyItems, vocabularyItems.id, v);
       counts.vocabulary++;
     }
 
     for (const s of pack.sentences) {
-      db.insert(sentenceItems).values(sanitizeRecord(s)).run();
+      upsert(sentenceItems, sentenceItems.id, s);
       counts.sentences++;
     }
 
     for (const d of pack.dialogs) {
-      db.insert(dialogs).values(sanitizeRecord(d)).run();
+      upsert(dialogs, dialogs.id, d);
       counts.dialogs++;
     }
 
     for (const dt of pack.dialogTurns) {
-      db.insert(dialogTurns).values(sanitizeRecord(dt)).run();
+      upsert(dialogTurns, dialogTurns.id, dt);
       counts.dialogTurns++;
     }
 
     for (const gp of pack.grammarPatterns) {
-      db.insert(grammarPatterns).values(sanitizeRecord(gp)).run();
+      upsert(grammarPatterns, grammarPatterns.id, gp);
       counts.grammarPatterns++;
     }
 
     for (const wp of pack.writingPrompts) {
-      db.insert(writingPrompts).values(sanitizeRecord(wp)).run();
+      upsert(writingPrompts, writingPrompts.id, wp);
       counts.writingPrompts++;
     }
 
     // Verb entities (must come after lessons/sentences for FK order)
     for (const v of pack.verbs) {
-      db.insert(verbs).values(sanitizeRecord(v)).run();
+      upsert(verbs, verbs.id, v);
       counts.verbs++;
     }
 
     for (const vcs of pack.verbConjugationSets) {
-      db.insert(verbConjugationSets).values(sanitizeRecord(vcs)).run();
+      upsert(verbConjugationSets, verbConjugationSets.id, vcs);
       counts.verbConjugationSets++;
     }
 
     for (const vcf of pack.verbConjugationForms) {
-      db.insert(verbConjugationForms).values(sanitizeRecord(vcf as any)).run();
+      upsert(verbConjugationForms, verbConjugationForms.id, vcf as any);
       counts.verbConjugationForms++;
     }
 
+    // lessonVerbs and sentenceVerbs have composite keys — delete by lesson/sentence + verb
     for (const lv of pack.lessonVerbs) {
-      db.insert(lessonVerbs).values(sanitizeRecord(lv as any)).run();
+      const rec = sanitizeRecord(lv as any);
+      db.delete(lessonVerbs)
+        .where(sql`lesson_id = ${rec.lessonId} AND verb_id = ${rec.verbId}`)
+        .run();
+      db.insert(lessonVerbs).values(rec).run();
       counts.lessonVerbs++;
     }
 
     for (const sv of pack.sentenceVerbs) {
-      db.insert(sentenceVerbs).values(sanitizeRecord(sv as any)).run();
+      const rec = sanitizeRecord(sv as any);
+      db.delete(sentenceVerbs)
+        .where(sql`sentence_id = ${rec.sentenceId} AND verb_id = ${rec.verbId} AND surface_form = ${rec.surfaceForm}`)
+        .run();
+      db.insert(sentenceVerbs).values(rec).run();
       counts.sentenceVerbs++;
     }
 

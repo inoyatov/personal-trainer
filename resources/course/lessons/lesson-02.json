@@ -1,0 +1,404 @@
+{
+  "lesson": {
+    "id": "les-jezelf-voorstellen-v5",
+    "moduleId": "mod-introduction",
+    "title": "Jezelf voorstellen (Introduce yourself)",
+    "description": "Learn to introduce yourself, say where you come from, and talk about where you live.",
+    "orderIndex": 0,
+    "estimatedMinutes": 20
+  },
+  "classGroups": [
+    {
+      "id": "cg-jezelf-voorstellen-v5-vocab",
+      "lessonId": "les-jezelf-voorstellen-v5",
+      "type": "vocabulary",
+      "title": "Woordenschat",
+      "orderIndex": 0
+    },
+    {
+      "id": "cg-jezelf-voorstellen-v5-dialog",
+      "lessonId": "les-jezelf-voorstellen-v5",
+      "type": "dialog",
+      "title": "Dialoog",
+      "orderIndex": 1
+    },
+    {
+      "id": "cg-jezelf-voorstellen-v5-grammar",
+      "lessonId": "les-jezelf-voorstellen-v5",
+      "type": "grammar",
+      "title": "Grammatica",
+      "orderIndex": 2
+    },
+    {
+      "id": "cg-jezelf-voorstellen-v5-writing",
+      "lessonId": "les-jezelf-voorstellen-v5",
+      "type": "writing",
+      "title": "Schrijven",
+      "orderIndex": 3
+    }
+  ],
+  "vocabulary": [
+    {
+      "id": "v-jezelf-v5-1",
+      "lemma": "naam",
+      "displayText": "de naam",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "name",
+      "classGroupId": "cg-jezelf-voorstellen-v5-vocab",
+      "difficulty": 1.0
+    },
+    {
+      "id": "v-jezelf-v5-2",
+      "lemma": "land",
+      "displayText": "het land",
+      "article": "het",
+      "partOfSpeech": "noun",
+      "translation": "country",
+      "classGroupId": "cg-jezelf-voorstellen-v5-vocab",
+      "difficulty": 1.0
+    },
+    {
+      "id": "v-jezelf-v5-3",
+      "lemma": "stad",
+      "displayText": "de stad",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "city",
+      "classGroupId": "cg-jezelf-voorstellen-v5-vocab",
+      "difficulty": 1.0
+    },
+    {
+      "id": "v-jezelf-v5-4",
+      "lemma": "buur",
+      "displayText": "de buur",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "neighbor",
+      "classGroupId": "cg-jezelf-voorstellen-v5-vocab",
+      "difficulty": 1.0
+    },
+    {
+      "id": "v-jezelf-v5-5",
+      "lemma": "cursus",
+      "displayText": "de cursus",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "course",
+      "classGroupId": "cg-jezelf-voorstellen-v5-vocab",
+      "difficulty": 1.0
+    },
+    {
+      "id": "v-jezelf-v5-6",
+      "lemma": "Nederland",
+      "displayText": "Nederland",
+      "article": null,
+      "partOfSpeech": "noun",
+      "translation": "Netherlands",
+      "classGroupId": "cg-jezelf-voorstellen-v5-vocab",
+      "difficulty": 1.0
+    },
+    {
+      "id": "v-jezelf-v5-7",
+      "lemma": "nieuw",
+      "displayText": "nieuw",
+      "article": null,
+      "partOfSpeech": "adjective",
+      "translation": "new",
+      "classGroupId": "cg-jezelf-voorstellen-v5-vocab",
+      "difficulty": 1.0
+    },
+    {
+      "id": "v-jezelf-v5-8",
+      "lemma": "vriendelijk",
+      "displayText": "vriendelijk",
+      "article": null,
+      "partOfSpeech": "adjective",
+      "translation": "friendly",
+      "classGroupId": "cg-jezelf-voorstellen-v5-vocab",
+      "difficulty": 1.0
+    }
+  ],
+  "sentences": [
+    {
+      "id": "s-jezelf-v5-1",
+      "text": "Mijn naam is Anna.",
+      "translation": "My name is Anna.",
+      "lessonId": "les-jezelf-voorstellen-v5",
+      "classGroupId": "cg-jezelf-voorstellen-v5-vocab"
+    },
+    {
+      "id": "s-jezelf-v5-2",
+      "text": "Ik kom uit een land.",
+      "translation": "I come from a country.",
+      "lessonId": "les-jezelf-voorstellen-v5",
+      "classGroupId": "cg-jezelf-voorstellen-v5-vocab"
+    },
+    {
+      "id": "s-jezelf-v5-3",
+      "text": "Ik wil in deze stad wonen.",
+      "translation": "I want to live in this city.",
+      "lessonId": "les-jezelf-voorstellen-v5",
+      "classGroupId": "cg-jezelf-voorstellen-v5-vocab"
+    },
+    {
+      "id": "s-jezelf-v5-4",
+      "text": "Mijn buur is vriendelijk.",
+      "translation": "My neighbor is friendly.",
+      "lessonId": "les-jezelf-voorstellen-v5",
+      "classGroupId": "cg-jezelf-voorstellen-v5-vocab"
+    },
+    {
+      "id": "s-jezelf-v5-5",
+      "text": "Ik volg een cursus.",
+      "translation": "I am taking a course.",
+      "lessonId": "les-jezelf-voorstellen-v5",
+      "classGroupId": "cg-jezelf-voorstellen-v5-vocab"
+    },
+    {
+      "id": "s-jezelf-v5-6",
+      "text": "Ik woon in Nederland.",
+      "translation": "I live in the Netherlands.",
+      "lessonId": "les-jezelf-voorstellen-v5",
+      "classGroupId": "cg-jezelf-voorstellen-v5-vocab"
+    }
+  ],
+  "dialogs": [
+    {
+      "id": "d-jezelf-v5",
+      "lessonId": "les-jezelf-voorstellen-v5",
+      "title": "Kennismaken",
+      "scenario": "Two people meet for the first time.",
+      "classGroupId": "cg-jezelf-voorstellen-v5-dialog"
+    }
+  ],
+  "dialogTurns": [
+    {
+      "id": "dt-jezelf-v5-1",
+      "dialogId": "d-jezelf-v5",
+      "speaker": "Persoon A",
+      "text": "Hallo, mijn naam is Maria.",
+      "translation": "Hello, my name is Maria.",
+      "orderIndex": 0
+    },
+    {
+      "id": "dt-jezelf-v5-2",
+      "dialogId": "d-jezelf-v5",
+      "speaker": "Persoon B",
+      "text": "Hallo, ik kom uit Spanje.",
+      "translation": "Hello, I come from Spain.",
+      "orderIndex": 1
+    },
+    {
+      "id": "dt-jezelf-v5-3",
+      "dialogId": "d-jezelf-v5",
+      "speaker": "Persoon A",
+      "text": "Woon je nu in deze stad?",
+      "translation": "Do you live in this city now?",
+      "orderIndex": 2
+    },
+    {
+      "id": "dt-jezelf-v5-4",
+      "dialogId": "d-jezelf-v5",
+      "speaker": "Persoon B",
+      "text": "Ja, ik woon in Nederland.",
+      "translation": "Yes, I live in the Netherlands.",
+      "orderIndex": 3
+    }
+  ],
+  "verbs": [
+    {
+      "id": "verb-komen-v5",
+      "infinitive": "komen",
+      "translation": "to come",
+      "type": "irregular",
+      "isSeparable": false
+    },
+    {
+      "id": "verb-wonen-v5",
+      "infinitive": "wonen",
+      "translation": "to live",
+      "type": "regular",
+      "isSeparable": false
+    }
+  ],
+  "verbConjugationSets": [
+    {
+      "id": "verb-komen-v5-present",
+      "verbId": "verb-komen-v5",
+      "tense": "present",
+      "mood": "indicative"
+    },
+    {
+      "id": "verb-wonen-v5-present",
+      "verbId": "verb-wonen-v5",
+      "tense": "present",
+      "mood": "indicative"
+    }
+  ],
+  "verbConjugationForms": [
+    {
+      "id": "verb-komen-v5-present-ik",
+      "conjugationSetId": "verb-komen-v5-present",
+      "pronoun": "IK",
+      "form": "kom"
+    },
+    {
+      "id": "verb-komen-v5-present-jij",
+      "conjugationSetId": "verb-komen-v5-present",
+      "pronoun": "JIJ",
+      "form": "komt"
+    },
+    {
+      "id": "verb-komen-v5-present-u",
+      "conjugationSetId": "verb-komen-v5-present",
+      "pronoun": "U",
+      "form": "komt"
+    },
+    {
+      "id": "verb-komen-v5-present-hij",
+      "conjugationSetId": "verb-komen-v5-present",
+      "pronoun": "HIJ",
+      "form": "komt"
+    },
+    {
+      "id": "verb-komen-v5-present-zij_sg",
+      "conjugationSetId": "verb-komen-v5-present",
+      "pronoun": "ZIJ_SG",
+      "form": "komt"
+    },
+    {
+      "id": "verb-komen-v5-present-het",
+      "conjugationSetId": "verb-komen-v5-present",
+      "pronoun": "HET",
+      "form": "komt"
+    },
+    {
+      "id": "verb-komen-v5-present-wij",
+      "conjugationSetId": "verb-komen-v5-present",
+      "pronoun": "WIJ",
+      "form": "komen"
+    },
+    {
+      "id": "verb-komen-v5-present-jullie",
+      "conjugationSetId": "verb-komen-v5-present",
+      "pronoun": "JULLIE",
+      "form": "komen"
+    },
+    {
+      "id": "verb-komen-v5-present-zij_pl",
+      "conjugationSetId": "verb-komen-v5-present",
+      "pronoun": "ZIJ_PL",
+      "form": "komen"
+    },
+
+    {
+      "id": "verb-wonen-v5-present-ik",
+      "conjugationSetId": "verb-wonen-v5-present",
+      "pronoun": "IK",
+      "form": "woon"
+    },
+    {
+      "id": "verb-wonen-v5-present-jij",
+      "conjugationSetId": "verb-wonen-v5-present",
+      "pronoun": "JIJ",
+      "form": "woont"
+    },
+    {
+      "id": "verb-wonen-v5-present-u",
+      "conjugationSetId": "verb-wonen-v5-present",
+      "pronoun": "U",
+      "form": "woont"
+    },
+    {
+      "id": "verb-wonen-v5-present-hij",
+      "conjugationSetId": "verb-wonen-v5-present",
+      "pronoun": "HIJ",
+      "form": "woont"
+    },
+    {
+      "id": "verb-wonen-v5-present-zij_sg",
+      "conjugationSetId": "verb-wonen-v5-present",
+      "pronoun": "ZIJ_SG",
+      "form": "woont"
+    },
+    {
+      "id": "verb-wonen-v5-present-het",
+      "conjugationSetId": "verb-wonen-v5-present",
+      "pronoun": "HET",
+      "form": "woont"
+    },
+    {
+      "id": "verb-wonen-v5-present-wij",
+      "conjugationSetId": "verb-wonen-v5-present",
+      "pronoun": "WIJ",
+      "form": "wonen"
+    },
+    {
+      "id": "verb-wonen-v5-present-jullie",
+      "conjugationSetId": "verb-wonen-v5-present",
+      "pronoun": "JULLIE",
+      "form": "wonen"
+    },
+    {
+      "id": "verb-wonen-v5-present-zij_pl",
+      "conjugationSetId": "verb-wonen-v5-present",
+      "pronoun": "ZIJ_PL",
+      "form": "wonen"
+    }
+  ],
+  "lessonVerbs": [
+    {
+      "lessonId": "les-jezelf-voorstellen-v5",
+      "verbId": "verb-komen-v5",
+      "role": "target",
+      "orderIndex": 0
+    },
+    {
+      "lessonId": "les-jezelf-voorstellen-v5",
+      "verbId": "verb-wonen-v5",
+      "role": "target",
+      "orderIndex": 1
+    }
+  ],
+  "sentenceVerbs": [
+    {
+      "sentenceId": "s-jezelf-v5-2",
+      "verbId": "verb-komen-v5",
+      "surfaceForm": "kom",
+      "isFinite": true
+    },
+    {
+      "sentenceId": "s-jezelf-v5-3",
+      "verbId": "verb-wonen-v5",
+      "surfaceForm": "wonen",
+      "isFinite": false
+    },
+    {
+      "sentenceId": "s-jezelf-v5-6",
+      "verbId": "verb-wonen-v5",
+      "surfaceForm": "woon",
+      "isFinite": true
+    }
+  ],
+  "grammarPatterns": [
+    {
+      "id": "gp-jezelf-v5-1",
+      "name": "Mijn naam is ...",
+      "description": "Use this pattern to introduce yourself.",
+      "explanationMarkdown": "**Mijn naam is ...** is a simple way to say your name.\n\n- Mijn naam is Anna.\n- Mijn naam is Omar.",
+      "examples": "[\"Mijn naam is Anna.\", \"Mijn naam is Omar.\"]",
+      "lessonId": "les-jezelf-voorstellen-v5"
+    }
+  ],
+  "writingPrompts": [
+    {
+      "id": "wp-jezelf-v5-1",
+      "lessonId": "les-jezelf-voorstellen-v5",
+      "promptText": "Write 2-4 sentences to introduce yourself. Say your name, where you come from, and where you live.",
+      "targetPatterns": "[\"Mijn naam is\", \"Ik kom uit\", \"Ik woon in\"]",
+      "expectedKeywords": "[\"naam\", \"land\", \"stad\", \"Nederland\"]",
+      "difficulty": 1.0
+    }
+  ]
+}
