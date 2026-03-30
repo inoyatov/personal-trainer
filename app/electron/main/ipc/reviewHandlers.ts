@@ -15,7 +15,38 @@ export function registerReviewHandlers(
 ) {
   ipcMain.handle(Channels.REVIEW_GET_DUE_ITEMS, (_event, data: unknown) => {
     const { userId } = getDueItemsRequest.parse(data ?? {});
-    return reviewRepo.getDueItems(userId);
+    const items = reviewRepo.getDueItems(userId);
+
+    // Enrich with display labels and filter out orphans
+    const enriched = [];
+    for (const item of items) {
+      let displayLabel: string | null = null;
+
+      if (item.entityType === 'vocabulary') {
+        const vocab = contentRepo.getVocabularyById(item.entityId);
+        if (vocab) displayLabel = `${vocab.displayText} — ${vocab.translation}`;
+      } else if (item.entityType === 'sentence') {
+        const sentence = contentRepo.getSentenceById(item.entityId);
+        if (sentence) {
+          displayLabel = sentence.text.length > 50 ? sentence.text.slice(0, 47) + '...' : sentence.text;
+        } else {
+          const turn = contentRepo.getDialogTurnById(item.entityId);
+          if (turn) displayLabel = `${turn.speaker}: ${turn.text}`;
+        }
+      } else if (item.entityType === 'dialog') {
+        const dialog = contentRepo.getDialogById(item.entityId);
+        if (dialog) displayLabel = dialog.title;
+      }
+
+      if (displayLabel) {
+        enriched.push({ ...item, displayLabel });
+      } else {
+        // Orphaned review state — delete it
+        reviewRepo.deleteReviewState(item.id);
+      }
+    }
+
+    return enriched;
   });
 
   ipcMain.handle(Channels.REVIEW_GET_STATE, (_event, data: unknown) => {
@@ -48,12 +79,49 @@ export function registerReviewHandlers(
       if (seenIds.has(item.entityId)) continue;
       seenIds.add(item.entityId);
 
+      let resolved = false;
+
+      // Try sentence first
       const sentence = contentRepo.getSentenceById(item.entityId);
       if (sentence) {
         sentences.push(sentence);
+        resolved = true;
+        continue;
+      }
+
+      // Try dialog turn (legacy: stored as entityType 'sentence')
+      const turn = contentRepo.getDialogTurnById(item.entityId);
+      if (turn) {
+        sentences.push({
+          id: turn.id,
+          text: turn.text,
+          translation: turn.translation || turn.text,
+          lessonId: '',
+        });
+        resolved = true;
+        continue;
+      }
+
+      // Vocabulary items — create a sentence-like object from the word
+      if (item.entityType === 'vocabulary') {
+        const vocab = contentRepo.getVocabularyById(item.entityId);
+        if (vocab) {
+          sentences.push({
+            id: vocab.id,
+            text: vocab.displayText,
+            translation: vocab.translation,
+            lessonId: '',
+          });
+          resolved = true;
+        }
+      }
+
+      // Orphan cleanup: delete review states that can't resolve to content
+      if (!resolved) {
+        reviewRepo.deleteReviewState(item.id);
       }
     }
 
-    return { sentences, dueItemCount: dueItems.length };
+    return { sentences, dueItemCount: sentences.length };
   });
 }

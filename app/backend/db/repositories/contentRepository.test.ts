@@ -131,6 +131,46 @@ describe('contentRepository', () => {
     });
   });
 
+  describe('dialog turns by id', () => {
+    it('getDialogTurnById should return the correct turn', () => {
+      repo.insertDialog({
+        id: 'd1',
+        lessonId: 'l1',
+        title: 'At the doctor',
+        scenario: 'Phone call',
+        classGroupId: 'cg2',
+      });
+
+      repo.insertDialogTurn({
+        id: 'dt-target',
+        dialogId: 'd1',
+        speaker: 'Doctor',
+        text: 'Wat zijn uw klachten?',
+        translation: 'What are your complaints?',
+        orderIndex: 0,
+      });
+
+      repo.insertDialogTurn({
+        id: 'dt-other',
+        dialogId: 'd1',
+        speaker: 'Patient',
+        text: 'Ik heb hoofdpijn.',
+        translation: 'I have a headache.',
+        orderIndex: 1,
+      });
+
+      const turn = repo.getDialogTurnById('dt-target');
+      expect(turn).toBeDefined();
+      expect(turn!.id).toBe('dt-target');
+      expect(turn!.speaker).toBe('Doctor');
+      expect(turn!.text).toBe('Wat zijn uw klachten?');
+
+      // Non-existent turn
+      const missing = repo.getDialogTurnById('dt-nonexistent');
+      expect(missing).toBeUndefined();
+    });
+  });
+
   describe('grammar patterns', () => {
     it('should insert and retrieve grammar patterns', () => {
       repo.insertGrammarPattern({

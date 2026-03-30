@@ -15,3 +15,26 @@ export function useAllProgress(userId?: string) {
     queryFn: () => api.progress.getAll(userId),
   });
 }
+
+export function useVocabCoverage(courseId: string | undefined) {
+  return useQuery({
+    queryKey: ['vocabCoverage', courseId],
+    queryFn: () => api.progress.getVocabCoverage(courseId!),
+    enabled: !!courseId,
+  });
+}
+
+export function useTotalVocabCoverage() {
+  return useQuery({
+    queryKey: ['totalVocabCoverage'],
+    queryFn: () => api.progress.getTotalVocabCoverage(),
+  });
+}
+
+export function useLessonUnlockStatus(courseId: string | undefined) {
+  return useQuery({
+    queryKey: ['lessonUnlockStatus', courseId],
+    queryFn: () => api.progress.getLessonUnlockStatus(courseId!),
+    enabled: !!courseId,
+  });
+}

@@ -23,6 +23,8 @@ export function CoursesPage() {
     try {
       await api.content.deleteCourse(deleteTarget.id);
       queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['vocabCoverage'] });
+      queryClient.invalidateQueries({ queryKey: ['totalVocabCoverage'] });
       setImportStatus({ type: 'success', message: `Deleted "${deleteTarget.title}"` });
     } catch (err: any) {
       setImportStatus({ type: 'error', message: err.message });
@@ -43,8 +45,10 @@ export function CoursesPage() {
           type: 'success',
           message: `Imported ${total} items (${result.counts.courses} courses, ${result.counts.vocabulary} vocabulary, ${result.counts.sentences} sentences)`,
         });
-        // Refresh course list
+        // Refresh course list and vocab stats
         queryClient.invalidateQueries({ queryKey: ['courses'] });
+        queryClient.invalidateQueries({ queryKey: ['vocabCoverage'] });
+        queryClient.invalidateQueries({ queryKey: ['totalVocabCoverage'] });
       } else if (result.errors?.length) {
         setImportStatus({
           type: 'error',

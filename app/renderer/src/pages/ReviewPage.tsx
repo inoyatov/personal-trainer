@@ -104,8 +104,11 @@ export function ReviewPage() {
                   >
                     {item.currentStage}
                   </span>
-                  <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                    {item.entityType}: {item.entityId}
+                  <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>
+                    {item.displayLabel ?? item.entityId}
+                  </span>
+                  <span className="ml-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                    {item.entityType}
                   </span>
                 </div>
                 <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>

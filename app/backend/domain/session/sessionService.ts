@@ -14,6 +14,10 @@ export interface SubmitAnswerInput {
   sessionId: string;
   exerciseInstanceId: string;
   exerciseType?: string;
+  /** The source content entity type (vocabulary, sentence, dialog, etc.) */
+  sourceEntityType?: string;
+  /** The source content entity ID */
+  sourceEntityId?: string;
   userAnswer: string;
   isCorrect: boolean;
   responseTimeMs: number;
@@ -76,11 +80,11 @@ export function createSessionService(
       }
 
       // Update review state via scheduler
-      if (reviewScheduler) {
+      if (reviewScheduler && input.sourceEntityId) {
         reviewScheduler.processAnswer({
           userId: session?.userId ?? 'default',
-          entityType: 'sentence',
-          entityId: input.exerciseInstanceId,
+          entityType: input.sourceEntityType ?? 'sentence',
+          entityId: input.sourceEntityId,
           exerciseType: input.exerciseType ?? 'multiple-choice-gap-fill',
           answer: {
             isCorrect: input.isCorrect,
@@ -95,6 +99,10 @@ export function createSessionService(
 
     endSession(sessionId: string) {
       return sessionRepo.endSession(sessionId);
+    },
+
+    abandonSession(sessionId: string) {
+      return sessionRepo.abandonSession(sessionId);
     },
 
     getSessionStats(sessionId: string): SessionStats | null {

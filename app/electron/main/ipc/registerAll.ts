@@ -14,6 +14,8 @@ import { registerDashboardHandlers } from './dashboardHandlers';
 import { registerImportExportHandlers } from './importExportHandlers';
 import { createVerbRepository } from '../../../backend/db/repositories/verbRepository';
 import { registerConjugationHandlers } from './conjugationHandlers';
+import { registerProgressHandlers } from './progressHandlers';
+import { createUnifiedSessionBuilder } from '../../../backend/domain/session/unifiedSessionBuilder';
 
 export function registerAllHandlers(db: AppDatabase) {
   const courseRepo = createCourseRepository(db);
@@ -25,11 +27,57 @@ export function registerAllHandlers(db: AppDatabase) {
   const reviewScheduler = createReviewScheduler(reviewRepo);
   const dashboardService = createDashboardService(db, reviewRepo);
 
+  const unifiedBuilder = createUnifiedSessionBuilder({
+    courseRepo,
+    contentRepo,
+    reviewRepo,
+    sessionRepo,
+    verbRepo,
+  });
+
+  // Clean up orphaned review states on startup
+  cleanupOrphanedReviewStates(reviewRepo, contentRepo);
+
   registerContentHandlers(courseRepo, contentRepo);
-  registerSessionHandlers(sessionRepo, reviewScheduler);
+  registerSessionHandlers(sessionRepo, reviewScheduler, unifiedBuilder);
   registerReviewHandlers(reviewRepo, contentRepo);
   registerWritingHandlers(writingRepo);
   registerDashboardHandlers(dashboardService);
   registerImportExportHandlers(db);
   registerConjugationHandlers(verbRepo, contentRepo);
+  registerProgressHandlers(courseRepo, contentRepo, reviewRepo);
+}
+
+/**
+ * Delete review states whose entityId doesn't resolve to any content.
+ * Runs once on app startup to clean up legacy/orphaned data.
+ */
+function cleanupOrphanedReviewStates(
+  reviewRepo: ReturnType<typeof createReviewRepository>,
+  contentRepo: ReturnType<typeof createContentRepository>,
+) {
+  const allStates = reviewRepo.getAllReviewStates('default');
+  let deleted = 0;
+
+  for (const state of allStates) {
+    let exists = false;
+
+    if (state.entityType === 'vocabulary') {
+      exists = !!contentRepo.getVocabularyById(state.entityId);
+    } else if (state.entityType === 'sentence') {
+      exists = !!contentRepo.getSentenceById(state.entityId)
+        || !!contentRepo.getDialogTurnById(state.entityId);
+    } else if (state.entityType === 'dialog') {
+      exists = !!contentRepo.getDialogById(state.entityId);
+    }
+
+    if (!exists) {
+      reviewRepo.deleteReviewState(state.id);
+      deleted++;
+    }
+  }
+
+  if (deleted > 0) {
+    console.log(`Cleaned up ${deleted} orphaned review state(s)`);
+  }
 }

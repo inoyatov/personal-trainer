@@ -231,6 +231,63 @@ export function createVerbRepository(db: AppDatabase) {
         .where(eq(conjugationAttempts.userId, userId))
         .all();
     },
+
+    /** Group conjugation_attempts by pronoun, compute accuracy per pronoun */
+    getWeakPronounStats(userId: string): Array<{ pronoun: string; total: number; correct: number; accuracy: number }> {
+      const attempts = db
+        .select()
+        .from(conjugationAttempts)
+        .where(eq(conjugationAttempts.userId, userId))
+        .all();
+
+      const stats: Record<string, { correct: number; total: number }> = {};
+      for (const a of attempts) {
+        if (!stats[a.pronoun]) stats[a.pronoun] = { correct: 0, total: 0 };
+        stats[a.pronoun].total++;
+        if (a.correct) stats[a.pronoun].correct++;
+      }
+
+      return Object.entries(stats).map(([pronoun, s]) => ({
+        pronoun,
+        total: s.total,
+        correct: s.correct,
+        accuracy: s.total > 0 ? s.correct / s.total : 0,
+      }));
+    },
+
+    /** Find verb+pronoun combos from lesson verbs that have no conjugation_review_states entry */
+    getNewVerbPronounCombos(lessonId: string, userId: string): Array<{ verbId: string; pronoun: string }> {
+      const ALL_PRONOUNS = ['IK', 'JIJ', 'U', 'HIJ', 'ZIJ_SG', 'HET', 'WIJ', 'JULLIE', 'ZIJ_PL'];
+
+      const links = db
+        .select()
+        .from(lessonVerbs)
+        .where(eq(lessonVerbs.lessonId, lessonId))
+        .all();
+
+      const verbIds = links.map((l) => l.verbId);
+
+      const existingStates = db
+        .select()
+        .from(conjugationReviewStates)
+        .where(eq(conjugationReviewStates.userId, userId))
+        .all();
+
+      const existingKeys = new Set(
+        existingStates.map((s) => `${s.verbId}::${s.pronoun}`),
+      );
+
+      const newCombos: Array<{ verbId: string; pronoun: string }> = [];
+      for (const verbId of verbIds) {
+        for (const pronoun of ALL_PRONOUNS) {
+          if (!existingKeys.has(`${verbId}::${pronoun}`)) {
+            newCombos.push({ verbId, pronoun });
+          }
+        }
+      }
+
+      return newCombos;
+    },
   };
 }
 

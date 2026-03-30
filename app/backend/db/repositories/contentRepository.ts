@@ -105,6 +105,10 @@ export function createContentRepository(db: AppDatabase) {
         .all();
     },
 
+    getDialogTurnById(id: string) {
+      return db.select().from(dialogTurns).where(eq(dialogTurns.id, id)).get();
+    },
+
     insertDialogTurn(data: typeof dialogTurns.$inferInsert) {
       return db.insert(dialogTurns).values(data).returning().get();
     },

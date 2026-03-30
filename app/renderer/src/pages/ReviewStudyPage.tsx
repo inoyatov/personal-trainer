@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { ExerciseShell } from '../features/study/components/ExerciseShell';
 import { MultipleChoiceExercise } from '../features/study/components/MultipleChoiceExercise';
@@ -105,9 +105,10 @@ function generateReviewExercises(
 
 export function ReviewStudyPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const gapMode = useAppStore((s) => s.gapMode);
 
-  const { data: reviewData, isLoading } = useQuery({
+  const { data: reviewData, isLoading, error: queryError } = useQuery({
     queryKey: ['reviewExercises'],
     queryFn: () => api.review.getExercises(),
   });
@@ -144,6 +145,11 @@ export function ReviewStudyPage() {
     if (session.isComplete && !sessionStats) {
       persistence.endPersistedSession().then((stats) => {
         if (stats) setSessionStats(stats);
+        // Invalidate review caches so counts update
+        queryClient.invalidateQueries({ queryKey: ['dueItems'] });
+        queryClient.invalidateQueries({ queryKey: ['reviewExercises'] });
+        queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+        queryClient.invalidateQueries({ queryKey: ['reviewStates'] });
       });
     }
   }, [session.isComplete, sessionStats]);
@@ -175,17 +181,45 @@ export function ReviewStudyPage() {
     [session],
   );
 
+  const persistWithEntity = useCallback(
+    async (
+      exercise: StudyExercise,
+      userAnswer: string,
+      isCorrect: boolean,
+      responseTimeMs: number,
+    ) => {
+      if (!persistence.sessionId.current) return;
+      try {
+        await api.session.submitAnswer({
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          sessionId: persistence.sessionId.current,
+          exerciseInstanceId: exercise.sourceEntityId,
+          exerciseType: exercise.exerciseType,
+          sourceEntityType: exercise.sourceEntityType,
+          sourceEntityId: exercise.sourceEntityId,
+          userAnswer,
+          isCorrect,
+          responseTimeMs,
+          hintUsed: false,
+        });
+      } catch (err) {
+        console.error('Failed to persist answer:', err);
+      }
+    },
+    [persistence],
+  );
+
   const handleMCAnswer = useCallback(
     (selectedIndex: number, correct: boolean) => {
       const responseTimeMs = Date.now() - answerStartTime.current;
       const exercise = session.currentExercise!;
       const userAnswer = exercise.options![selectedIndex];
       session.submitAnswer(userAnswer, correct, responseTimeMs);
-      persistence.persistAnswer(exercise.sourceEntityId, userAnswer, correct, responseTimeMs, false);
+      persistWithEntity(exercise, userAnswer, correct, responseTimeMs);
       trackFrustration(correct, responseTimeMs, false);
       makeFeedback(userAnswer, correct, exercise.exerciseType);
     },
-    [session, persistence, trackFrustration, makeFeedback],
+    [session, persistWithEntity, trackFrustration, makeFeedback],
   );
 
   const handleTypedAnswer = useCallback(
@@ -193,11 +227,11 @@ export function ReviewStudyPage() {
       const responseTimeMs = Date.now() - answerStartTime.current;
       const exercise = session.currentExercise!;
       session.submitAnswer(userAnswer, isCorrect, responseTimeMs);
-      persistence.persistAnswer(exercise.sourceEntityId, userAnswer, isCorrect, responseTimeMs, false);
+      persistWithEntity(exercise, userAnswer, isCorrect, responseTimeMs);
       trackFrustration(isCorrect, responseTimeMs, false);
       makeFeedback(userAnswer, isCorrect, exercise.exerciseType);
     },
-    [session, persistence, trackFrustration, makeFeedback],
+    [session, persistWithEntity, trackFrustration, makeFeedback],
   );
 
   const handleConfidenceSelect = useCallback(
@@ -212,6 +246,19 @@ export function ReviewStudyPage() {
 
   if (isLoading) return <LoadingSpinner />;
 
+  if (queryError) {
+    return (
+      <div className="mx-auto max-w-2xl pt-12">
+        <EmptyState title="Failed to load review" description={String(queryError)} />
+        <div className="mt-4 text-center">
+          <button onClick={() => navigate('/')} className="text-sm" style={{ color: 'var(--color-accent)' }}>
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (reviewData && reviewData.sentences.length === 0) {
     return (
       <div className="mx-auto max-w-2xl pt-12">
@@ -219,6 +266,20 @@ export function ReviewStudyPage() {
         <div className="mt-4 text-center">
           <button onClick={() => navigate('/')} className="text-sm" style={{ color: 'var(--color-accent)' }}>
             Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (session.exercises.length === 0 && !initialized.current && reviewData) {
+    // Exercises couldn't be generated from the review data
+    return (
+      <div className="mx-auto max-w-2xl pt-12">
+        <EmptyState title="No exercises generated" description="The review items couldn't produce exercises. Try again later." />
+        <div className="mt-4 text-center">
+          <button onClick={() => navigate('/review')} className="text-sm" style={{ color: 'var(--color-accent)' }}>
+            Back to Review
           </button>
         </div>
       </div>

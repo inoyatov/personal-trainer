@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useDashboardStats, useRecentSessions } from '../hooks/useDashboardQueries';
 import { useAllReviewStates } from '../hooks/useReviewQueries';
+import { useTotalVocabCoverage } from '../hooks/useProgressQueries';
 import { PageHeader } from '../components/common/PageHeader';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { generateCompetenceSignals, type ProgressSnapshot } from '../../../backend/domain/progress/competenceSignals';
@@ -29,6 +30,7 @@ export function ProgressPage() {
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: sessions } = useRecentSessions();
   const { data: reviewStates, isLoading: statesLoading } = useAllReviewStates();
+  const { data: vocabCoverage } = useTotalVocabCoverage();
 
   // Conjugation stats
   const { data: conjStats } = useQuery({
@@ -112,6 +114,60 @@ export function ProgressPage() {
           value={stats?.todayTotal ? `${stats.todayAccuracy}%` : '--'}
         />
       </div>
+
+      {/* Vocabulary Coverage */}
+      {vocabCoverage && (
+        <div className="mb-8">
+          <h3 className="mb-3 text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+            Vocabulary Coverage
+          </h3>
+          <div
+            className="rounded-lg border p-4"
+            style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                {vocabCoverage.wordsLearned} of {vocabCoverage.totalWords} words learned
+              </span>
+              <span className="text-sm font-bold" style={{ color: 'var(--color-accent)' }}>
+                {vocabCoverage.progressPercent}%
+              </span>
+            </div>
+            <div
+              className="mb-3 h-4 overflow-hidden rounded-full"
+              style={{ backgroundColor: 'var(--color-bg-tertiary)' }}
+            >
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${vocabCoverage.progressPercent}%`,
+                  background: 'linear-gradient(90deg, var(--color-badge-blue), var(--color-success))',
+                }}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                  {vocabCoverage.wordsLearned}
+                </p>
+                <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Learned</p>
+              </div>
+              <div>
+                <p className="text-xl font-bold" style={{ color: 'var(--color-success)' }}>
+                  {vocabCoverage.wordsMastered}
+                </p>
+                <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Mastered</p>
+              </div>
+              <div>
+                <p className="text-xl font-bold" style={{ color: 'var(--color-text-secondary)' }}>
+                  {vocabCoverage.totalWords}
+                </p>
+                <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>In Course</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Conjugation stats */}
       {conjStats && conjStats.verbsPracticed > 0 && (

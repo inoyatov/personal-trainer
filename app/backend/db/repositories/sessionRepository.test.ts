@@ -110,4 +110,138 @@ describe('sessionRepository', () => {
       expect(fetched!.correctAnswer).toBe('dokter');
     });
   });
+
+  describe('abandonSession', () => {
+    it('should set status to abandoned and endedAt', () => {
+      repo.createSession({
+        id: 'sess-abandon',
+        userId: 'default',
+        mode: 'learn',
+        startedAt: new Date().toISOString(),
+      });
+
+      const abandoned = repo.abandonSession('sess-abandon');
+      expect(abandoned!.status).toBe('abandoned');
+      expect(abandoned!.endedAt).toBeTruthy();
+
+      const fetched = repo.getSessionById('sess-abandon');
+      expect(fetched!.status).toBe('abandoned');
+      expect(fetched!.endedAt).toBeTruthy();
+    });
+  });
+
+  describe('getCompletedSessionCount', () => {
+    it('should count completed sessions for user+course', () => {
+      const scope = JSON.stringify({ courseId: 'course1' });
+
+      repo.createSession({
+        id: 'sess-c1',
+        userId: 'default',
+        mode: 'learn',
+        sourceScope: scope,
+        startedAt: new Date().toISOString(),
+      });
+      repo.createSession({
+        id: 'sess-c2',
+        userId: 'default',
+        mode: 'learn',
+        sourceScope: scope,
+        startedAt: new Date().toISOString(),
+      });
+      repo.createSession({
+        id: 'sess-c3',
+        userId: 'default',
+        mode: 'learn',
+        sourceScope: scope,
+        startedAt: new Date().toISOString(),
+      });
+
+      // Complete 2 sessions
+      repo.endSession('sess-c1');
+      repo.endSession('sess-c2');
+      // sess-c3 stays active
+
+      const count = repo.getCompletedSessionCount('default', 'course1');
+      expect(count).toBe(2);
+    });
+  });
+
+  describe('getRecentAnswersForEntities', () => {
+    it('should return grouped answers', () => {
+      repo.createSession({
+        id: 'sess-ans',
+        userId: 'default',
+        mode: 'learn',
+        startedAt: new Date().toISOString(),
+      });
+
+      // Create exercise instances with different sourceEntityIds
+      repo.createExerciseInstance({
+        id: 'ei-a',
+        sourceEntityType: 'sentence',
+        sourceEntityId: 'entity1',
+        exerciseType: 'typed-gap-fill',
+        renderedPrompt: 'prompt1',
+        correctAnswer: 'ans1',
+      });
+      repo.createExerciseInstance({
+        id: 'ei-b',
+        sourceEntityType: 'sentence',
+        sourceEntityId: 'entity1',
+        exerciseType: 'typed-gap-fill',
+        renderedPrompt: 'prompt2',
+        correctAnswer: 'ans2',
+      });
+      repo.createExerciseInstance({
+        id: 'ei-c',
+        sourceEntityType: 'sentence',
+        sourceEntityId: 'entity2',
+        exerciseType: 'typed-gap-fill',
+        renderedPrompt: 'prompt3',
+        correctAnswer: 'ans3',
+      });
+
+      // Insert answers
+      repo.insertAnswer({
+        id: 'ans1',
+        sessionId: 'sess-ans',
+        exerciseInstanceId: 'ei-a',
+        userAnswer: 'ans1',
+        isCorrect: true,
+        responseTimeMs: 1000,
+        hintUsed: false,
+      });
+      repo.insertAnswer({
+        id: 'ans2',
+        sessionId: 'sess-ans',
+        exerciseInstanceId: 'ei-b',
+        userAnswer: 'wrong',
+        isCorrect: false,
+        responseTimeMs: 2000,
+        hintUsed: false,
+      });
+      repo.insertAnswer({
+        id: 'ans3',
+        sessionId: 'sess-ans',
+        exerciseInstanceId: 'ei-c',
+        userAnswer: 'ans3',
+        isCorrect: true,
+        responseTimeMs: 1500,
+        hintUsed: false,
+      });
+
+      const grouped = repo.getRecentAnswersForEntities(
+        ['entity1', 'entity2'],
+        10,
+      );
+      expect(grouped['entity1']).toHaveLength(2);
+      expect(grouped['entity2']).toHaveLength(1);
+      expect(grouped['entity2'][0].isCorrect).toBe(true);
+    });
+
+    it('should return empty object for empty array', () => {
+      const result = repo.getRecentAnswersForEntities([], 10);
+      expect(result).toEqual({});
+    });
+  });
 });

@@ -4,29 +4,31 @@ A desktop application for preparing for the Dutch naturalization (inburgering) e
 
 ## Overview
 
-Personal Trainer is a contextual language learning system that teaches Dutch vocabulary, grammar, and writing through sentence-based exercises. Unlike flashcard apps, it treats the **sentence pattern** as the core learning object, not the isolated word.
+Personal Trainer is an adaptive language learning system that teaches Dutch vocabulary, grammar, verb conjugation, and writing through sentence-based exercises. It features a **unified learning engine** that dynamically selects and prioritizes exercises based on your performance, with spaced repetition scheduling across 6 mastery stages.
 
 ### Key Features
 
-- **3 Exercise Types**: Multiple-choice gap-fill (recognition), typed gap-fill (recall), dialog completion (transfer)
-- **Adaptive Review Scheduler**: 6 mastery stages (New → Seen → Recognized → Recalled → Stable → Automated) with interval-based scheduling
-- **Dialog Training**: Practice real-life Dutch conversations with chat-bubble UI
-- **Writing Lab**: Guided writing prompts with heuristic feedback (keyword coverage, capitalization, sentence structure)
-- **Progress Tracking**: Dashboard with session stats, mastery distribution, accuracy charts
-- **Content Import/Export**: Import full courses or individual lessons from JSON files
+- **7 Exercise Types**: Multiple-choice gap-fill, typed gap-fill, word order, dialog completion, conjugation typing, conjugation in sentence, guided writing
+- **Unified Learning Engine**: Deterministic scoring, soft type balancing, cold start progression, and adaptation based on performance
+- **Spaced Repetition**: 6 mastery stages (New → Seen → Recognized → Recalled → Stable → Automated) with 4-path interval algorithm
+- **Verb Conjugation Practice**: 70/20/10 session mix with MISSING_T error adaptation for jij/hij drills
+- **Lesson Progression**: Sequential lesson unlock at 80% vocabulary mastery
+- **Vocabulary Coverage**: Per-course and cross-course progress tracking toward A2 target (~1500 words)
+- **Writing Lab**: Guided writing prompts with heuristic feedback
+- **Content Import/Export**: Import full courses or individual lessons from JSON (with density + uniqueness validation)
 - **Theme Support**: 4 color themes (Default Light, Default Dark, Gruvbox Dark, Gruvbox Light)
 - **Offline-First**: All data stored locally in SQLite, no account required
 
-### Screenshots
+### What the App Includes
 
-The app includes:
-- **Dashboard** — due reviews, today's accuracy, recent sessions
-- **Course Browser** — navigate courses → modules → lessons → class groups
-- **Study Screen** — MC options with keyboard shortcuts (1-4), typed input with typo tolerance
-- **Dialog Exercises** — chat bubble UI with speaker labels
+- **Dashboard** — due reviews, "Start Learning" button, today's accuracy, recent sessions
+- **Course Browser** — vocabulary coverage progress bar, modules with lesson lock/unlock indicators
+- **Unified Study Session** — mixed exercises from the adaptive engine with cold start phase indicator
+- **Conjugation Practice** — focused verb drills with error classification and pronoun-specific feedback
+- **Review Queue** — due items with meaningful labels, start review session
 - **Writing Lab** — select a prompt, write Dutch text, get structured feedback
-- **Progress Page** — mastery distribution bar, accuracy chart, tracked items table
-- **Settings** — theme picker with visual previews
+- **Progress Page** — vocabulary coverage, mastery distribution, conjugation stats, accuracy charts
+- **Settings** — theme picker, gap display mode
 
 ## Tech Stack
 
@@ -38,7 +40,7 @@ The app includes:
 | Database | SQLite via better-sqlite3 + Drizzle ORM |
 | Validation | Zod (all IPC boundaries) |
 | Build | Electron Forge + Vite |
-| Testing | Vitest (153 tests) |
+| Testing | Vitest (510 tests, 87% line coverage) |
 
 ## Architecture
 
@@ -49,9 +51,9 @@ app/
     preload/        # contextBridge API (typed, narrow)
   renderer/src/
     app/            # App shell, router (HashRouter)
-    pages/          # Route-level components
+    pages/          # 13 page components
     components/     # Shared UI (themed with CSS variables)
-    features/       # Feature modules (study, writing)
+    features/       # Feature modules (study, conjugation)
     hooks/          # TanStack Query hooks
     lib/            # API client, Zustand store, themes
   shared/
@@ -59,10 +61,17 @@ app/
     types/          # Shared TypeScript types
     schemas/        # Content pack Zod schemas
   backend/
-    db/             # Drizzle schema, migrations, repositories
-    domain/         # Business logic (scheduler, evaluation, exercise generation)
-    import/         # Content pack + lesson importer
+    db/             # Drizzle schema, 7 migrations, 6 repositories
+    domain/
+      scheduler/    # Spaced repetition + scoring engine
+      session/      # Unified builder, conjugation builder, policies
+      evaluation/   # Answer checking, feedback generation
+      exercise-generation/ # 6 exercise generators
+      progress/     # Dashboard, completion, vocab coverage
+      content/      # Word normalization
+    import/         # Content pack + lesson importer (density + uniqueness validation)
     export/         # Content pack exporter
+    integration/    # Pipeline integration tests
 ```
 
 ### Security
@@ -71,6 +80,7 @@ app/
 - Content Security Policy in production
 - Zod validation on all IPC payloads
 - HTML sanitization on imported content
+- Orphaned review states auto-cleaned on startup
 
 ## Getting Started
 
@@ -93,7 +103,7 @@ npm install
 npm start
 ```
 
-This rebuilds the native SQLite module for Electron and launches the app. On first launch, the database is seeded with 3 sample Dutch A2 lessons.
+This rebuilds the native SQLite module for Electron and launches the app. On first launch, the database is seeded with 3 sample Dutch A2 lessons and 15 verbs with conjugation tables.
 
 ### Run Tests
 
@@ -101,7 +111,7 @@ This rebuilds the native SQLite module for Electron and launches the app. On fir
 npm test
 ```
 
-This rebuilds the native SQLite module for Node.js and runs all 153 tests.
+Runs all 510 tests with 87% line coverage.
 
 ### Package for Distribution
 
@@ -115,15 +125,13 @@ Builds platform-specific installers (macOS .zip, Windows .exe, Linux .deb/.rpm).
 
 1. Download `Personal Trainer-darwin-arm64-*.zip` from [Releases](https://github.com/inoyatov/personal-trainer/releases)
 2. Extract the zip
-3. **Important**: The app is not code-signed, so macOS Gatekeeper will block it. Remove the quarantine attribute before opening:
+3. **Important**: The app is not code-signed, so macOS Gatekeeper will block it:
 
 ```bash
 xattr -cr "Personal Trainer.app"
 ```
 
 4. Double-click `Personal Trainer.app` to launch
-
-> **Note**: The `xattr -cr` command must be run from the directory where you extracted the app, or provide the full path. This is only needed once per download.
 
 ## Content
 
@@ -133,6 +141,7 @@ The app ships with seed content:
 - **1 course**: Nederlands A2 — Inburgering
 - **2 modules**: Dagelijks Leven (Daily Life), Gezondheid (Health)
 - **3 lessons**: Bij de bakker, Op de markt, Bij de dokter
+- **15 verbs**: wonen, werken, spreken, maken, eten, drinken, doen, zien, zijn, hebben, gaan, komen, willen, kunnen, moeten
 - Each lesson includes vocabulary (6-8 words), sentences (4-6), dialogs (4-6 turns), grammar patterns, and writing prompts
 
 ### Importing Content
@@ -143,52 +152,29 @@ Go to **Courses** → click **"Import Content Pack"** → select a `.json` file.
 #### Import a Lesson into a Module
 Navigate into a module → click **"Import Lesson"** → select a lesson `.json` file.
 
+**v4 Content Rules:**
+- Each lesson must have **18–22 vocabulary items** (< 18 = lesson rejected)
+- No duplicate words within a course (case-insensitive)
+- Vocabulary normalization: nouns without article, verbs as infinitive
+
 ### Creating Content
 
-See [`docs/lesson-generation-prompt.md`](docs/lesson-generation-prompt.md) for the full JSON specification and a ready-to-use ChatGPT prompt template for generating lessons.
-
-**Lesson pack format:**
-```json
-{
-  "lesson": { "id": "les-topic", "moduleId": "...", "title": "...", ... },
-  "classGroups": [...],
-  "vocabulary": [...],
-  "sentences": [...],
-  "dialogs": [...],
-  "dialogTurns": [...],
-  "grammarPatterns": [...],
-  "writingPrompts": [...]
-}
-```
-
-Key rule: every vocabulary `lemma` must appear as an exact whole word in at least one sentence for exercises to generate.
-
-## Project Structure
-
-| Directory | Purpose |
-|-----------|---------|
-| `app/backend/db/schema/` | Drizzle ORM table definitions (17 tables) |
-| `app/backend/db/repositories/` | Data access layer (5 repositories) |
-| `app/backend/domain/scheduler/` | Review scheduling algorithm (mastery stages, interval calculation) |
-| `app/backend/domain/evaluation/` | Answer checking (normalizer, typo tolerance, article checker, writing evaluator) |
-| `app/backend/domain/exercise-generation/` | Exercise generators (gap-fill, dialog turn) |
-| `app/backend/domain/session/` | Session lifecycle service |
-| `app/backend/domain/progress/` | Dashboard stats, lesson completion |
-| `app/backend/import/` | Content pack + lesson importers with Zod validation |
-| `app/backend/export/` | Content pack exporter (course or lesson scope) |
-| `app/shared/contracts/` | 30+ IPC channel definitions with Zod schemas |
-| `app/renderer/src/pages/` | 10 page components |
-| `app/renderer/src/features/study/` | Exercise UI components (MC, typed, dialog) |
-| `app/content-packs/` | Sample JSON content packs |
-| `docs/` | Design documents and lesson generation guide |
+See [`docs/lesson-generation-prompt-v4.md`](docs/lesson-generation-prompt-v4.md) for the full JSON specification and ready-to-use ChatGPT/Claude prompt templates for generating lessons.
 
 ## Testing
 
-153 tests across 20 test files covering:
+510 tests across 48 test files:
 
-- **Domain logic**: Review scheduler (interval calculation, stage transitions, mastery), exercise generation (gap-fill, distractors, dialog turns), answer evaluation (normalizer, Levenshtein typo tolerance, Dutch article checking), writing evaluator, lesson completion
-- **Repositories**: CRUD operations against in-memory SQLite (courses, content, sessions, reviews, writing)
-- **Import/Export**: Content pack validation, transactional import, round-trip export/reimport, HTML sanitization
+- **Scoring engine**: 29 tests (priority scoring, sub-scores, ranking)
+- **Session builders**: 21 tests (unified builder, conjugation builder, exercise generation)
+- **Policies**: 21 tests (cold start distribution, adaptation, frustration detection)
+- **Exercise generation**: 57 tests (gap-fill, dialog, word order, conjugation typed/in-sentence)
+- **Evaluation**: 77 tests (answer normalization, typo tolerance, conjugation checker, article checker, writing evaluator)
+- **Repositories**: 48 tests (CRUD, new v4 methods)
+- **Import/Export**: 20 tests (density validation, uniqueness, round-trip, lesson import)
+- **Progress**: 21 tests (vocab coverage, lesson frontier, dashboard, competence signals)
+- **Integration**: 28 tests (unified pipeline, conjugation pipeline, IPC handler round-trips)
+- **Other**: 17 tests (mastery stages, learning steps, session modes, types)
 
 ## License
 

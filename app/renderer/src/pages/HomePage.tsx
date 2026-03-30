@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardStats, useRecentSessions } from '../hooks/useDashboardQueries';
+import { useCourses } from '../hooks/useContentQueries';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 
 export function HomePage() {
@@ -8,6 +9,8 @@ export function HomePage() {
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: recentSessions, isLoading: sessionsLoading } =
     useRecentSessions();
+  const { data: courses } = useCourses();
+  const firstCourseId = courses?.[0]?.id;
 
   if (statsLoading) return <LoadingSpinner />;
 
@@ -33,6 +36,15 @@ export function HomePage() {
 
       {/* Quick actions */}
       <div className="mb-8 flex flex-wrap gap-3">
+        {firstCourseId && (
+          <button
+            onClick={() => navigate(`/unified/${firstCourseId}`)}
+            className="rounded-lg px-5 py-2.5 text-sm font-semibold"
+            style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-inverse)' }}
+          >
+            Start Learning
+          </button>
+        )}
         {stats?.dueReviewCount ? (
           <button
             onClick={() => navigate('/review')}
@@ -45,7 +57,7 @@ export function HomePage() {
         <button
           onClick={() => navigate('/courses')}
           className="rounded-lg px-5 py-2.5 text-sm font-medium"
-          style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-inverse)' }}
+          style={{ backgroundColor: 'var(--color-bg-tertiary)', color: 'var(--color-text-primary)' }}
         >
           Browse Courses
         </button>
@@ -154,6 +166,7 @@ function formatMode(mode: string): string {
   const labels: Record<string, string> = {
     learn: 'Learn', practice: 'Practice', review: 'Review',
     'exam-simulation': 'Exam Sim', 'writing-lab': 'Writing',
+    'unified-learning': 'Unified', 'conjugation-practice': 'Conjugation',
   };
   return labels[mode] ?? mode;
 }

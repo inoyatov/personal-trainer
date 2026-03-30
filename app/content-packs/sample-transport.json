@@ -100,6 +100,136 @@
       "translation": "delay",
       "classGroupId": "cg-train-vocab",
       "difficulty": 1.4
+    },
+    {
+      "id": "vt-6",
+      "lemma": "bus",
+      "displayText": "de bus",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "bus",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.0
+    },
+    {
+      "id": "vt-7",
+      "lemma": "fiets",
+      "displayText": "de fiets",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "bicycle",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.0
+    },
+    {
+      "id": "vt-8",
+      "lemma": "halte",
+      "displayText": "de halte",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "stop",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.1
+    },
+    {
+      "id": "vt-9",
+      "lemma": "reis",
+      "displayText": "de reis",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "journey",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.1
+    },
+    {
+      "id": "vt-10",
+      "lemma": "richting",
+      "displayText": "de richting",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "direction",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.2
+    },
+    {
+      "id": "vt-11",
+      "lemma": "spoor",
+      "displayText": "het spoor",
+      "article": "het",
+      "partOfSpeech": "noun",
+      "translation": "track",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.2
+    },
+    {
+      "id": "vt-12",
+      "lemma": "reiziger",
+      "displayText": "de reiziger",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "traveler",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.2
+    },
+    {
+      "id": "vt-13",
+      "lemma": "vertrekken",
+      "displayText": "vertrekken",
+      "article": null,
+      "partOfSpeech": "verb",
+      "translation": "to depart",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.3
+    },
+    {
+      "id": "vt-14",
+      "lemma": "aankomen",
+      "displayText": "aankomen",
+      "article": null,
+      "partOfSpeech": "verb",
+      "translation": "to arrive",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.3
+    },
+    {
+      "id": "vt-15",
+      "lemma": "overstappen",
+      "displayText": "overstappen",
+      "article": null,
+      "partOfSpeech": "verb",
+      "translation": "to transfer",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.4
+    },
+    {
+      "id": "vt-16",
+      "lemma": "instappen",
+      "displayText": "instappen",
+      "article": null,
+      "partOfSpeech": "verb",
+      "translation": "to board",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.3
+    },
+    {
+      "id": "vt-17",
+      "lemma": "uitstappen",
+      "displayText": "uitstappen",
+      "article": null,
+      "partOfSpeech": "verb",
+      "translation": "to get off",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.3
+    },
+    {
+      "id": "vt-18",
+      "lemma": "conductor",
+      "displayText": "de conductor",
+      "article": "de",
+      "partOfSpeech": "noun",
+      "translation": "conductor",
+      "classGroupId": "cg-train-vocab",
+      "difficulty": 1.1
     }
   ],
   "sentences": [
@@ -128,6 +258,90 @@
       "id": "st-4",
       "text": "Er is helaas vertraging op dit traject.",
       "translation": "There is unfortunately a delay on this route.",
+      "lessonId": "les-train",
+      "classGroupId": "cg-train-vocab"
+    },
+    {
+      "id": "st-5",
+      "text": "De bus stopt bij elke halte.",
+      "translation": "The bus stops at every stop.",
+      "lessonId": "les-train",
+      "classGroupId": "cg-train-vocab"
+    },
+    {
+      "id": "st-6",
+      "text": "Ik ga met de fiets naar het station.",
+      "translation": "I go to the station by bicycle.",
+      "lessonId": "les-train",
+      "classGroupId": "cg-train-vocab"
+    },
+    {
+      "id": "st-7",
+      "text": "De reis duurt twee uur.",
+      "translation": "The journey takes two hours.",
+      "lessonId": "les-train",
+      "classGroupId": "cg-train-vocab"
+    },
+    {
+      "id": "st-8",
+      "text": "In welke richting moet ik lopen?",
+      "translation": "In which direction should I walk?",
+      "lessonId": "les-train",
+      "classGroupId": "cg-train-vocab"
+    },
+    {
+      "id": "st-9",
+      "text": "De trein staat op spoor vijf.",
+      "translation": "The train is on track five.",
+      "lessonId": "les-train",
+      "classGroupId": "cg-train-vocab"
+    },
+    {
+      "id": "st-10",
+      "text": "Elke reiziger moet een kaartje hebben.",
+      "translation": "Every traveler must have a ticket.",
+      "lessonId": "les-train",
+      "classGroupId": "cg-train-vocab"
+    },
+    {
+      "id": "st-11",
+      "text": "De trein gaat om acht uur vertrekken.",
+      "translation": "The train will depart at eight o'clock.",
+      "lessonId": "les-train",
+      "classGroupId": "cg-train-vocab"
+    },
+    {
+      "id": "st-12",
+      "text": "Wanneer gaat de bus aankomen?",
+      "translation": "When will the bus arrive?",
+      "lessonId": "les-train",
+      "classGroupId": "cg-train-vocab"
+    },
+    {
+      "id": "st-13",
+      "text": "U moet in Leiden overstappen.",
+      "translation": "You have to transfer in Leiden.",
+      "lessonId": "les-train",
+      "classGroupId": "cg-train-vocab"
+    },
+    {
+      "id": "st-14",
+      "text": "Wij gaan nu instappen in de trein.",
+      "translation": "We are going to board the train now.",
+      "lessonId": "les-train",
+      "classGroupId": "cg-train-vocab"
+    },
+    {
+      "id": "st-15",
+      "text": "Bij de volgende halte moet je uitstappen.",
+      "translation": "You have to get off at the next stop.",
+      "lessonId": "les-train",
+      "classGroupId": "cg-train-vocab"
+    },
+    {
+      "id": "st-16",
+      "text": "De conductor controleert de kaartjes.",
+      "translation": "The conductor checks the tickets.",
       "lessonId": "les-train",
       "classGroupId": "cg-train-vocab"
     }

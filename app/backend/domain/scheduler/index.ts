@@ -14,3 +14,5 @@ export {
   confidenceFeedback,
 } from './confidenceModifiers';
 export type { Confidence } from './confidenceModifiers';
+export { computeItemScore, dueScore, errorScore, recencyScore, typeBoost } from './scoringEngine';
+export type { ScorableItem, ScoredItem, ItemEntityType } from './scoringEngine';

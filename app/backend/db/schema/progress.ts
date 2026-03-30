@@ -36,11 +36,16 @@ export const sessions = sqliteTable('sessions', {
     .$defaultFn(() => new Date().toISOString()),
   endedAt: text('ended_at'),
   mode: text('mode', {
-    enum: ['learn', 'practice', 'review', 'exam-simulation', 'writing-lab'],
+    enum: ['learn', 'practice', 'review', 'exam-simulation', 'writing-lab', 'unified-learning', 'conjugation-practice'],
   }).notNull(),
   sourceScope: text('source_scope').notNull().default('{}'),
   totalQuestions: integer('total_questions').notNull().default(0),
   correctAnswers: integer('correct_answers').notNull().default(0),
+  status: text('status', {
+    enum: ['active', 'completed', 'abandoned'],
+  })
+    .notNull()
+    .default('active'),
 });
 
 export const sessionAnswers = sqliteTable('session_answers', {

@@ -52,7 +52,8 @@ export function runMigrations(db: AppDatabase) {
     transliteration TEXT,
     tags TEXT NOT NULL DEFAULT '[]',
     difficulty REAL NOT NULL DEFAULT 1.0,
-    class_group_id TEXT REFERENCES class_groups(id) ON DELETE SET NULL
+    class_group_id TEXT REFERENCES class_groups(id) ON DELETE SET NULL,
+    normalized_word TEXT
   )`);
 
   db.run(sql`CREATE TABLE IF NOT EXISTS sentence_items (
@@ -139,10 +140,11 @@ export function runMigrations(db: AppDatabase) {
     user_id TEXT NOT NULL DEFAULT 'default',
     started_at TEXT NOT NULL,
     ended_at TEXT,
-    mode TEXT NOT NULL CHECK(mode IN ('learn', 'practice', 'review', 'exam-simulation', 'writing-lab')),
+    mode TEXT NOT NULL CHECK(mode IN ('learn', 'practice', 'review', 'exam-simulation', 'writing-lab', 'unified-learning', 'conjugation-practice')),
     source_scope TEXT NOT NULL DEFAULT '{}',
     total_questions INTEGER NOT NULL DEFAULT 0,
-    correct_answers INTEGER NOT NULL DEFAULT 0
+    correct_answers INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'completed', 'abandoned'))
   )`);
 
   db.run(sql`CREATE TABLE IF NOT EXISTS session_answers (

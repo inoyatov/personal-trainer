@@ -199,4 +199,137 @@ describe('verbRepository', () => {
       expect(forVerb).toHaveLength(2);
     });
   });
+
+  describe('getWeakPronounStats', () => {
+    it('should return accuracy per pronoun', () => {
+      repo.insertVerb({ id: 'v-lopen', infinitive: 'lopen', translation: 'to walk' });
+
+      // IK: 2 correct out of 3
+      repo.insertConjugationAttempt({
+        id: 'ca-wp1',
+        userId: 'default',
+        verbId: 'v-lopen',
+        pronoun: 'IK',
+        tense: 'present',
+        expectedForm: 'loop',
+        userAnswer: 'loop',
+        correct: true,
+        errorType: 'CORRECT',
+        responseTimeMs: 1000,
+      });
+      repo.insertConjugationAttempt({
+        id: 'ca-wp2',
+        userId: 'default',
+        verbId: 'v-lopen',
+        pronoun: 'IK',
+        tense: 'present',
+        expectedForm: 'loop',
+        userAnswer: 'loopt',
+        correct: false,
+        errorType: 'WRONG_PRONOUN_FORM',
+        responseTimeMs: 1500,
+      });
+      repo.insertConjugationAttempt({
+        id: 'ca-wp3',
+        userId: 'default',
+        verbId: 'v-lopen',
+        pronoun: 'IK',
+        tense: 'present',
+        expectedForm: 'loop',
+        userAnswer: 'loop',
+        correct: true,
+        errorType: 'CORRECT',
+        responseTimeMs: 1200,
+      });
+
+      // HIJ: 0 correct out of 1
+      repo.insertConjugationAttempt({
+        id: 'ca-wp4',
+        userId: 'default',
+        verbId: 'v-lopen',
+        pronoun: 'HIJ',
+        tense: 'present',
+        expectedForm: 'loopt',
+        userAnswer: 'loop',
+        correct: false,
+        errorType: 'MISSING_T',
+        responseTimeMs: 2000,
+      });
+
+      const stats = repo.getWeakPronounStats('default');
+      expect(stats).toHaveLength(2);
+
+      const ikStat = stats.find((s) => s.pronoun === 'IK');
+      expect(ikStat).toBeDefined();
+      expect(ikStat!.total).toBe(3);
+      expect(ikStat!.correct).toBe(2);
+      expect(ikStat!.accuracy).toBeCloseTo(2 / 3);
+
+      const hijStat = stats.find((s) => s.pronoun === 'HIJ');
+      expect(hijStat).toBeDefined();
+      expect(hijStat!.total).toBe(1);
+      expect(hijStat!.correct).toBe(0);
+      expect(hijStat!.accuracy).toBe(0);
+    });
+  });
+
+  describe('getNewVerbPronounCombos', () => {
+    it('should return unreviewed verb+pronoun pairs', () => {
+      repo.insertVerb({ id: 'v-eten', infinitive: 'eten', translation: 'to eat' });
+      repo.insertVerb({ id: 'v-drinken', infinitive: 'drinken', translation: 'to drink' });
+
+      // Link both verbs to lesson l1
+      repo.insertLessonVerb({ lessonId: 'l1', verbId: 'v-eten', role: 'target', orderIndex: 0 });
+      repo.insertLessonVerb({ lessonId: 'l1', verbId: 'v-drinken', role: 'target', orderIndex: 1 });
+
+      // Mark some combos as reviewed for v-eten
+      repo.upsertConjugationReviewState({
+        id: 'crs-eten-ik',
+        userId: 'default',
+        verbId: 'v-eten',
+        pronoun: 'IK',
+        tense: 'present',
+        stage: 'seen',
+        dueAt: new Date().toISOString(),
+      });
+      repo.upsertConjugationReviewState({
+        id: 'crs-eten-hij',
+        userId: 'default',
+        verbId: 'v-eten',
+        pronoun: 'HIJ',
+        tense: 'present',
+        stage: 'recognized',
+        dueAt: new Date().toISOString(),
+      });
+
+      const combos = repo.getNewVerbPronounCombos('l1', 'default');
+
+      // v-eten has 9 pronouns total, 2 reviewed = 7 new
+      // v-drinken has 9 pronouns total, 0 reviewed = 9 new
+      // total = 16
+      expect(combos).toHaveLength(16);
+
+      // Reviewed combos should NOT be in the list
+      const etenIk = combos.find(
+        (c) => c.verbId === 'v-eten' && c.pronoun === 'IK',
+      );
+      expect(etenIk).toBeUndefined();
+
+      const etenHij = combos.find(
+        (c) => c.verbId === 'v-eten' && c.pronoun === 'HIJ',
+      );
+      expect(etenHij).toBeUndefined();
+
+      // Unreviewed combos should be present
+      const etenJij = combos.find(
+        (c) => c.verbId === 'v-eten' && c.pronoun === 'JIJ',
+      );
+      expect(etenJij).toBeDefined();
+
+      const drinkenIk = combos.find(
+        (c) => c.verbId === 'v-drinken' && c.pronoun === 'IK',
+      );
+      expect(drinkenIk).toBeDefined();
+    });
+  });
 });

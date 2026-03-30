@@ -7,6 +7,7 @@ import { EmptyState } from '../components/common/EmptyState';
 import { ErrorMessage } from '../components/common/ErrorMessage';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { useModules, useLessons } from '../hooks/useContentQueries';
+import { useLessonUnlockStatus } from '../hooks/useProgressQueries';
 import { api } from '../lib/api';
 
 export function ModulePage() {
@@ -16,6 +17,7 @@ export function ModulePage() {
   }>();
   const { data: modules } = useModules(courseId);
   const { data: lessons, isLoading, error } = useLessons(moduleId);
+  const { data: unlockStatus } = useLessonUnlockStatus(courseId);
   const queryClient = useQueryClient();
   const [importStatus, setImportStatus] = useState<{
     type: 'success' | 'error';
@@ -27,10 +29,17 @@ export function ModulePage() {
 
   const mod = modules?.find((m: any) => m.id === moduleId);
 
+  const unlockedLessonIds = new Set(
+    unlockStatus?.filter((s: any) => s.unlocked).map((s: any) => s.lessonId) ?? [],
+  );
+
   const handleDeleteLesson = async () => {
     if (!deleteTarget) return;
     await api.content.deleteLesson(deleteTarget.id);
     queryClient.invalidateQueries({ queryKey: ['lessons', moduleId] });
+    queryClient.invalidateQueries({ queryKey: ['vocabCoverage'] });
+    queryClient.invalidateQueries({ queryKey: ['totalVocabCoverage'] });
+    queryClient.invalidateQueries({ queryKey: ['lessonUnlockStatus'] });
     setDeleteTarget(null);
   };
 
@@ -49,6 +58,9 @@ export function ModulePage() {
           message: `Lesson imported (${result.counts.vocabulary} vocab, ${result.counts.sentences} sentences, ${result.counts.dialogs} dialogs)`,
         });
         queryClient.invalidateQueries({ queryKey: ['lessons', moduleId] });
+        queryClient.invalidateQueries({ queryKey: ['vocabCoverage'] });
+        queryClient.invalidateQueries({ queryKey: ['totalVocabCoverage'] });
+        queryClient.invalidateQueries({ queryKey: ['lessonUnlockStatus'] });
       } else if (result.errors?.length) {
         setImportStatus({ type: 'error', message: result.errors.join('; ') });
       }
@@ -114,12 +126,18 @@ export function ModulePage() {
 
       {lessons && lessons.length > 0 && (
         <div className="space-y-2">
-          {lessons.map((lesson: any) => (
+          {lessons.map((lesson: any) => {
+            const isLocked = unlockStatus ? !unlockedLessonIds.has(lesson.id) : false;
+            return (
             <div key={lesson.id} className="relative">
               <button
                 onClick={() => navigate(`/lessons/${lesson.id}`)}
                 className="flex w-full items-start gap-4 rounded-lg border p-4 text-left transition-colors"
-                style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}
+                style={{
+                  backgroundColor: 'var(--color-bg-secondary)',
+                  borderColor: 'var(--color-border)',
+                  opacity: isLocked ? 0.5 : 1,
+                }}
               >
                 <span
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold"
@@ -128,7 +146,10 @@ export function ModulePage() {
                   {lesson.orderIndex + 1}
                 </span>
                 <div className="flex-1">
-                  <h4 className="font-medium" style={{ color: 'var(--color-text-primary)' }}>{lesson.title}</h4>
+                  <h4 className="font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                    {isLocked && <span className="mr-1.5" aria-label="Locked">&#x1F512;</span>}
+                    {lesson.title}
+                  </h4>
                   {lesson.description && (
                     <p className="mt-0.5 text-sm" style={{ color: 'var(--color-text-secondary)' }}>{lesson.description}</p>
                   )}
@@ -143,7 +164,8 @@ export function ModulePage() {
                 🗑
               </button>
             </div>
-          ))}
+          );
+          })}
         </div>
       )}
 

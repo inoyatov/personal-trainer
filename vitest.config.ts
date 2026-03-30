@@ -7,6 +7,13 @@ export default defineConfig({
     environment: 'node',
     include: ['app/**/*.test.ts', 'app/**/*.test.tsx'],
     exclude: ['node_modules', '.vite', 'dist'],
+    coverage: {
+      provider: 'istanbul',
+      reporter: ['text', 'json-summary'],
+      reportsDirectory: './coverage',
+      include: ['app/backend/**/*.ts', 'app/shared/**/*.ts'],
+      exclude: ['**/*.test.ts', '**/*.test.tsx', '**/index.ts'],
+    },
   },
   resolve: {
     alias: {

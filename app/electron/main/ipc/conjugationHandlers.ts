@@ -5,6 +5,7 @@ import type { VerbRepository } from '../../../backend/db/repositories/verbReposi
 import type { ContentRepository } from '../../../backend/db/repositories/contentRepository';
 import { generateConjugationTypedBatch } from '../../../backend/domain/exercise-generation/conjugationTypedGenerator';
 import { generateConjugationInSentenceBatch } from '../../../backend/domain/exercise-generation/conjugationInSentenceGenerator';
+import { buildConjugationSession } from '../../../backend/domain/session/conjugationSessionBuilder';
 import {
   classifyConjugationError,
   isConjugationAccepted,
@@ -35,75 +36,14 @@ export function registerConjugationHandlers(
     return verbRepo.getAllFormsMap(verbId);
   });
 
-  // Generate conjugation exercises for a lesson
+  // Generate conjugation exercises for a lesson (Milestone 10: session builder)
   ipcMain.handle(Channels.CONJUGATION_GENERATE_EXERCISES, (_event, data: any) => {
-    const { lessonId, maxExercises = 10 } = data;
-    const lessonVerbs = verbRepo.getVerbsByLesson(lessonId);
+    const { lessonId, userId = 'default', maxExercises = 10 } = data;
 
-    // Only target and focus_irregular verbs get drilled
-    const drillVerbs = lessonVerbs.filter(
-      (lv) => lv.role === 'target' || lv.role === 'focus_irregular',
+    return buildConjugationSession(
+      { userId, lessonId, maxExercises },
+      { verbRepo, contentRepo },
     );
-
-    const verbInputs = drillVerbs
-      .filter((lv) => lv.verb)
-      .map((lv) => ({
-        id: lv.verb!.id,
-        infinitive: lv.verb!.infinitive,
-        translation: lv.verb!.translation,
-      }));
-
-    const formsMaps: Record<string, Record<string, string>> = {};
-    for (const v of verbInputs) {
-      formsMaps[v.id] = verbRepo.getAllFormsMap(v.id);
-    }
-
-    // Generate typed exercises (first half)
-    const typedCount = Math.ceil(maxExercises / 2);
-    const typedExercises = generateConjugationTypedBatch(
-      verbInputs,
-      formsMaps,
-      typedCount,
-    );
-
-    // Generate sentence-based exercises (second half)
-    const sentenceInputs: any[] = [];
-    for (const v of verbInputs) {
-      const sentenceVerbs = verbRepo.getVerbSentences(v.id);
-      for (const sv of sentenceVerbs) {
-        const sentence = contentRepo.getSentenceById(sv.sentenceId);
-        if (sentence) {
-          // Determine pronoun from forms map by matching surface form
-          let matchedPronoun = 'IK';
-          const forms = formsMaps[v.id];
-          for (const [pronoun, form] of Object.entries(forms)) {
-            if (form.toLowerCase() === sv.surfaceForm.toLowerCase()) {
-              matchedPronoun = pronoun;
-              break;
-            }
-          }
-
-          sentenceInputs.push({
-            sentenceId: sentence.id,
-            sentenceText: sentence.text,
-            sentenceTranslation: sentence.translation,
-            verbId: v.id,
-            verbInfinitive: v.infinitive,
-            surfaceForm: sv.surfaceForm,
-            pronoun: matchedPronoun,
-          });
-        }
-      }
-    }
-
-    const sentenceCount = maxExercises - typedExercises.length;
-    const sentenceExercises = generateConjugationInSentenceBatch(
-      sentenceInputs,
-      formsMaps,
-      sentenceCount,
-    );
-
-    return [...typedExercises, ...sentenceExercises];
   });
 
   // Submit a conjugation answer — classify error, record attempt, update review

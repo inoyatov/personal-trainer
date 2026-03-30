@@ -1,5 +1,102 @@
 # Changelog
 
+## [4.0.0] - 2026-03-30
+
+### v4 — Unified Adaptive Learning Engine
+
+#### Scoring Engine
+- Deterministic priority scoring: `0.5*dueScore + 0.25*errorScore + 0.15*recencyScore + 0.10*typeBoost`
+- All scores normalized to [0,1] with documented formulas
+- dueScore caps at 7 days overdue, recencyScore uses exponential decay (600s half-life)
+- Type boost: vocabulary 0.10, conjugation 0.15, sentence/dialog 0.08, new items 0.05
+
+#### Unified Session Builder
+- Single engine replaces per-lesson static exercise generation
+- Composes scoring, item pool selection, cold start policy, adaptation, and exercise generation
+- Exercises shuffled per session (questions + MC options) — no pattern memorization
+- Session mode: `unified-learning` at `/unified/:courseId`
+
+#### Item Pool Builder + Soft Type Balancing
+- Gathers candidates from due items + weak items, scores and ranks
+- Soft type balancing: if any type deviates >±20% from target, swap lowest-scored overrepresented with highest-scored underrepresented
+- 3-tier fallback chain: recent errors → new items from frontier → recycle lowest mastery
+
+#### Cold Start Policy
+- Sessions 1–3: vocabulary 80%, sentence 20% (early phase)
+- Sessions 4–10: vocabulary 60%, sentence 25%, conjugation 15% (mid phase)
+- Session 10+: full distribution — vocabulary 40%, conjugation 25%, sentence 20%, dialog 15%
+- Phase indicator shown on first exercise: "Getting Started" / "Building Foundations" / "Full Practice"
+
+#### Adaptation Policy
+- Struggling detection: accuracy <0.6 over last 10 items OR 3 consecutive errors → +20% MC probability
+- Fast success detection: responseTime <1500ms AND correct → +20% typing tasks
+- Session-local scope (doesn't persist across sessions)
+- Complements existing frustration detector (UI-level safety valve)
+
+#### Lesson Frontier & Progression
+- Lessons unlock sequentially: ≥80% vocabulary at stage `recalled` or higher unlocks the next lesson
+- First lesson always unlocked
+- Lock/unlock indicators on module page (opacity + lock icon)
+- Warning banner on locked lesson pages
+
+#### Vocabulary Integrity (v4 Content Rules)
+- **18–22 vocabulary items per lesson** — lessons with <18 are REJECTED at import
+- **No duplicate words within a course** — normalized uniqueness check (lowercase, trim, strip article)
+- Vocabulary normalization: nouns stored without article, verbs as infinitive
+- Migration v005: `normalized_word` column added to vocabulary_items
+- Import validation runs before entity insertion (density check + uniqueness check)
+
+#### Conjugation Practice Mode (70/20/10)
+- Dedicated session builder: 70% due reviews, 20% weak pronoun drills, 10% new verb exposure
+- MISSING_T adaptation: >20% MISSING_T errors → boost jij/hij exercises
+- Backfill logic for cold start (fills from all verb+pronoun combos when due/weak buckets empty)
+- Exercise split: 70% conjugation-typed, 30% conjugation-in-sentence
+
+#### Session Lifecycle
+- Sessions tracked with status: `active` → `completed` or `abandoned`
+- Abandoned sessions detected on component unmount + `beforeunload`
+- Migration v006: `status` column on sessions table
+- Migration v007: extended session mode CHECK constraint for new modes
+
+#### Vocabulary Coverage Stats
+- Per-course: progress bar showing words learned vs total words in course
+- Cross-course: total vocabulary coverage on Progress page
+- Breakdown: learned (stage >= seen), mastered (stage >= recalled), in course
+
+#### Review Queue Improvements
+- Display labels: vocabulary shows "het brood — bread", sentences show text, dialog turns show "Speaker: text"
+- Orphan cleanup: review states with no matching content auto-deleted on app startup and on queue load
+- Review sessions now properly update review states via sourceEntityId
+
+#### UI Changes
+- "Start Learning" button on HomePage and CoursePage → unified session
+- Vocabulary progress card on CoursePage with gradient progress bar
+- Lesson lock/unlock indicators on ModulePage
+- Cold start phase indicator on UnifiedStudyPage
+- Vocabulary Coverage section on ProgressPage (cross-course totals)
+- Session mode labels: "Unified" and "Conjugation" in recent sessions
+
+#### Database Migrations
+- v005: `normalized_word` column on vocabulary_items + backfill
+- v006: `status` column on sessions (active/completed/abandoned)
+- v007: extended sessions mode CHECK constraint (unified-learning, conjugation-practice)
+
+#### Testing
+- 510 tests across 48 files, all passing
+- 87.4% line coverage (up from ~50% in v3)
+- New test categories: scoring engine (29), session builders (21), adaptation/cold start (21), vocab coverage (8), lesson frontier (8), normalize word (18), IPC handler integration (17), pipeline tests (11), dashboard service (5), repository method tests (9)
+- Integration tests: unified pipeline (import → study → review → progression), conjugation pipeline (cold start → MISSING_T → adaptation)
+
+#### Content Generation
+- Updated lesson generation prompt v4 with 18-22 vocab requirement
+- Sample transport content pack expanded to 18 vocabulary items
+
+#### IPC Channels (new)
+- `session:buildUnified`, `session:abandon`
+- `progress:getVocabCoverage`, `progress:getTotalVocabCoverage`, `progress:getLessonUnlockStatus`
+
+---
+
 ## [3.0.0] - 2026-03-30
 
 ### v3 — Verb Conjugation System

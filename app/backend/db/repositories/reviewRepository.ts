@@ -1,4 +1,4 @@
-import { eq, and, lte } from 'drizzle-orm';
+import { eq, and, lte, gt, inArray, desc, asc, sql } from 'drizzle-orm';
 import { reviewStates } from '../schema';
 import type { AppDatabase } from '../index';
 
@@ -87,6 +87,55 @@ export function createReviewRepository(db: AppDatabase) {
         .delete(reviewStates)
         .where(eq(reviewStates.id, id))
         .run();
+    },
+
+    getWeakItems(userId: string) {
+      return db
+        .select()
+        .from(reviewStates)
+        .where(
+          and(
+            eq(reviewStates.userId, userId),
+            inArray(reviewStates.currentStage, ['new', 'seen', 'recognized']),
+            gt(reviewStates.failCount, 0),
+          ),
+        )
+        .all();
+    },
+
+    getRecentErrorItems(userId: string, limit: number) {
+      return db
+        .select()
+        .from(reviewStates)
+        .where(
+          and(
+            eq(reviewStates.userId, userId),
+            gt(reviewStates.failCount, 0),
+          ),
+        )
+        .orderBy(desc(reviewStates.lastSeenAt))
+        .limit(limit)
+        .all();
+    },
+
+    getLowestMasteryItems(userId: string, limit: number) {
+      const stageOrder = sql`CASE ${reviewStates.currentStage}
+        WHEN 'new' THEN 0
+        WHEN 'seen' THEN 1
+        WHEN 'recognized' THEN 2
+        WHEN 'recalled' THEN 3
+        WHEN 'stable' THEN 4
+        WHEN 'automated' THEN 5
+        ELSE 6
+      END`;
+
+      return db
+        .select()
+        .from(reviewStates)
+        .where(eq(reviewStates.userId, userId))
+        .orderBy(stageOrder, desc(reviewStates.failCount))
+        .limit(limit)
+        .all();
     },
   };
 }

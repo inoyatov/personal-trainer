@@ -36,11 +36,12 @@ export function registerContentHandlers(
     (_event, data: unknown) => {
       const { lessonId } = getLessonContentRequest.parse(data);
       const lesson = courseRepo.getLessonById(lessonId);
+      const module = lesson ? courseRepo.getModuleById(lesson.moduleId) : undefined;
       const classGroups = courseRepo.getClassGroupsByLesson(lessonId);
       const sentences = contentRepo.getSentencesByLesson(lessonId);
       const dialogs = contentRepo.getDialogsByLesson(lessonId);
       const grammarPatterns = contentRepo.getGrammarPatternsByLesson(lessonId);
-      return { lesson, classGroups, sentences, dialogs, grammarPatterns };
+      return { lesson, module, classGroups, sentences, dialogs, grammarPatterns };
     },
   );
 

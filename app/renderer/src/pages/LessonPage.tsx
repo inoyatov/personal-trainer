@@ -12,6 +12,7 @@ import { SentenceList } from '../components/content/SentenceList';
 import { useLessonContent, useVocabulary } from '../hooks/useContentQueries';
 import { SessionModeSelector, type SessionModeId } from '../features/study/components/SessionModeSelector';
 import { VerbCard } from '../features/conjugation/components/VerbCard';
+import { useLessonUnlockStatus } from '../hooks/useProgressQueries';
 import { api } from '../lib/api';
 import { useQuery } from '@tanstack/react-query';
 
@@ -27,6 +28,12 @@ export function LessonPage() {
   const { data: vocabulary } = useVocabulary(
     activeGroup?.type === 'vocabulary' ? activeGroupId ?? undefined : undefined,
   );
+
+  const courseId = data?.module?.courseId;
+  const { data: unlockStatus } = useLessonUnlockStatus(courseId);
+  const isLessonLocked = unlockStatus
+    ? !unlockStatus.some((s: any) => s.lessonId === lessonId && s.unlocked)
+    : false;
 
   // Fetch verbs for this lesson
   const { data: lessonVerbs } = useQuery({
@@ -76,6 +83,19 @@ export function LessonPage() {
       {data.classGroups?.length > 0 && (
         <div className="mb-6">
           <ClassGroupTabs classGroups={data.classGroups} activeGroupId={activeGroupId} onSelect={setActiveGroupId} />
+        </div>
+      )}
+
+      {isLessonLocked && (
+        <div
+          className="mb-4 rounded-lg border p-3 text-sm"
+          style={{
+            backgroundColor: 'var(--color-warning-light, #fef3cd)',
+            color: 'var(--color-warning-text, #856404)',
+            borderColor: 'var(--color-warning, #ffc107)',
+          }}
+        >
+          &#x1F512; Complete the previous lesson to unlock adaptive learning for this lesson.
         </div>
       )}
 

@@ -14,6 +14,7 @@ export const vocabularyItems = sqliteTable('vocabulary_items', {
   classGroupId: text('class_group_id').references(() => classGroups.id, {
     onDelete: 'set null',
   }),
+  normalizedWord: text('normalized_word'),
 });
 
 export const sentenceItems = sqliteTable('sentence_items', {

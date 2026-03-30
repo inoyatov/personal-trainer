@@ -26,7 +26,9 @@ export type SessionMode =
   | 'practice'
   | 'review'
   | 'exam-simulation'
-  | 'writing-lab';
+  | 'writing-lab'
+  | 'unified-learning'
+  | 'conjugation-practice';
 
 export interface Course {
   id: string;

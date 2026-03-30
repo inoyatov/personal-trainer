@@ -14,6 +14,7 @@ import { WritingLabPage } from '../pages/WritingLabPage';
 import { ProgressPage } from '../pages/ProgressPage';
 import { SettingsPage } from '../pages/SettingsPage';
 import { ConjugationPracticePage } from '../pages/ConjugationPracticePage';
+import { UnifiedStudyPage } from '../pages/UnifiedStudyPage';
 import { useAppStore } from '../lib/store';
 import { getThemeById, applyTheme } from '../lib/themes';
 
@@ -56,6 +57,7 @@ export function App() {
             <Route path="/progress" element={<ProgressPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/conjugation/:lessonId" element={<ConjugationPracticePage />} />
+            <Route path="/unified/:courseId" element={<UnifiedStudyPage />} />
           </Routes>
         </MainLayout>
       </HashRouter>

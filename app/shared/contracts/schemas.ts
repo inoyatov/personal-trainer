@@ -41,6 +41,8 @@ export const createSessionRequest = z.object({
     'review',
     'exam-simulation',
     'writing-lab',
+    'unified-learning',
+    'conjugation-practice',
   ]),
   sourceScope: z.string().optional(),
 });
@@ -53,6 +55,9 @@ export const submitAnswerRequest = z.object({
   id: z.string().min(1),
   sessionId: z.string().min(1),
   exerciseInstanceId: z.string().min(1),
+  exerciseType: z.string().optional(),
+  sourceEntityType: z.string().optional(),
+  sourceEntityId: z.string().optional(),
   userAnswer: z.string(),
   isCorrect: z.boolean(),
   responseTimeMs: z.number().int().min(0),
@@ -80,6 +85,17 @@ export const createExerciseInstanceRequest = z.object({
 
 export const getExerciseInstanceRequest = z.object({
   instanceId: z.string().min(1),
+});
+
+export const abandonSessionRequest = z.object({
+  sessionId: z.string().min(1),
+});
+
+export const buildUnifiedSessionRequest = z.object({
+  userId: z.string().optional().default('default'),
+  courseId: z.string().min(1),
+  mode: z.enum(['unified-learning', 'conjugation-practice']),
+  maxItems: z.number().int().min(1).max(50).optional().default(20),
 });
 
 export const getDueItemsRequest = z.object({
@@ -141,6 +157,16 @@ export const getLessonProgressRequest = z.object({
 
 export const getAllProgressRequest = z.object({
   userId: z.string().optional().default('default'),
+});
+
+export const getVocabCoverageRequest = z.object({
+  userId: z.string().optional().default('default'),
+  courseId: z.string().min(1),
+});
+
+export const getLessonUnlockStatusRequest = z.object({
+  userId: z.string().optional().default('default'),
+  courseId: z.string().min(1),
 });
 
 export const updateLessonProgressRequest = z.object({

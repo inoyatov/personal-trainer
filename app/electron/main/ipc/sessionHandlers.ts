@@ -8,6 +8,8 @@ import {
   getSessionAnswersRequest,
   createExerciseInstanceRequest,
   getExerciseInstanceRequest,
+  buildUnifiedSessionRequest,
+  abandonSessionRequest,
 } from '../../../shared/contracts/schemas';
 import type { SessionRepository } from '../../../backend/db/repositories/sessionRepository';
 import type { ReviewScheduler } from '../../../backend/domain/scheduler/reviewScheduler';
@@ -15,10 +17,12 @@ import {
   createSessionService,
   type SessionService,
 } from '../../../backend/domain/session/sessionService';
+import type { UnifiedSessionBuilder } from '../../../backend/domain/session/unifiedSessionBuilder';
 
 export function registerSessionHandlers(
   sessionRepo: SessionRepository,
   reviewScheduler?: ReviewScheduler,
+  unifiedBuilder?: UnifiedSessionBuilder,
 ) {
   const sessionService = createSessionService(sessionRepo, reviewScheduler);
 
@@ -42,6 +46,9 @@ export function registerSessionHandlers(
     return sessionService.submitAnswer({
       sessionId: parsed.sessionId,
       exerciseInstanceId: parsed.exerciseInstanceId,
+      exerciseType: (parsed as any).exerciseType,
+      sourceEntityType: (parsed as any).sourceEntityType,
+      sourceEntityId: (parsed as any).sourceEntityId,
       userAnswer: parsed.userAnswer,
       isCorrect: parsed.isCorrect,
       responseTimeMs: parsed.responseTimeMs,
@@ -52,6 +59,11 @@ export function registerSessionHandlers(
   ipcMain.handle(Channels.SESSION_END, (_event, data: unknown) => {
     const { sessionId } = endSessionRequest.parse(data);
     return sessionService.endSession(sessionId);
+  });
+
+  ipcMain.handle(Channels.SESSION_ABANDON, (_event, data: unknown) => {
+    const { sessionId } = abandonSessionRequest.parse(data);
+    return sessionService.abandonSession(sessionId);
   });
 
   ipcMain.handle(Channels.SESSION_GET_ANSWERS, (_event, data: unknown) => {
@@ -77,6 +89,22 @@ export function registerSessionHandlers(
     (_event, data: unknown) => {
       const { instanceId } = getExerciseInstanceRequest.parse(data);
       return sessionRepo.getExerciseInstanceById(instanceId);
+    },
+  );
+
+  ipcMain.handle(
+    Channels.SESSION_BUILD_UNIFIED,
+    (_event, data: unknown) => {
+      const parsed = buildUnifiedSessionRequest.parse(data);
+      if (!unifiedBuilder) {
+        throw new Error('Unified session builder not available');
+      }
+      return unifiedBuilder.buildSession({
+        userId: parsed.userId,
+        courseId: parsed.courseId,
+        mode: parsed.mode,
+        maxItems: parsed.maxItems,
+      });
     },
   );
 }

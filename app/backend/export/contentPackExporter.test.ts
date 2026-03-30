@@ -22,8 +22,8 @@ describe('contentPackExporter', () => {
       expect(pack!.modules).toHaveLength(1);
       expect(pack!.lessons).toHaveLength(1);
       expect(pack!.classGroups).toHaveLength(2);
-      expect(pack!.vocabulary).toHaveLength(5);
-      expect(pack!.sentences).toHaveLength(4);
+      expect(pack!.vocabulary).toHaveLength(18);
+      expect(pack!.sentences).toHaveLength(16);
       expect(pack!.dialogs).toHaveLength(1);
       expect(pack!.dialogTurns).toHaveLength(4);
     });
@@ -43,8 +43,8 @@ describe('contentPackExporter', () => {
       expect(pack!.courses).toHaveLength(1);
       expect(pack!.modules).toHaveLength(1);
       expect(pack!.lessons).toHaveLength(1);
-      expect(pack!.vocabulary).toHaveLength(5);
-      expect(pack!.sentences).toHaveLength(4);
+      expect(pack!.vocabulary).toHaveLength(18);
+      expect(pack!.sentences).toHaveLength(16);
       expect(pack!.dialogs).toHaveLength(1);
       expect(pack!.dialogTurns).toHaveLength(4);
     });
@@ -66,8 +66,8 @@ describe('contentPackExporter', () => {
 
       expect(result.success).toBe(true);
       expect(result.counts.courses).toBe(1);
-      expect(result.counts.vocabulary).toBe(5);
-      expect(result.counts.sentences).toBe(4);
+      expect(result.counts.vocabulary).toBe(18);
+      expect(result.counts.sentences).toBe(16);
       expect(result.counts.dialogTurns).toBe(4);
     });
   });

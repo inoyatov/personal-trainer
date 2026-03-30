@@ -21,6 +21,8 @@ export const Channels = {
   SESSION_END: 'session:end',
   SESSION_GET_ANSWERS: 'session:getAnswers',
   SESSION_GET_STATS: 'session:getStats',
+  SESSION_BUILD_UNIFIED: 'session:buildUnified',
+  SESSION_ABANDON: 'session:abandon',
 
   // Exercise
   EXERCISE_CREATE_INSTANCE: 'exercise:createInstance',
@@ -43,6 +45,9 @@ export const Channels = {
   PROGRESS_GET_LESSON: 'progress:getLesson',
   PROGRESS_GET_ALL: 'progress:getAll',
   PROGRESS_UPDATE_LESSON: 'progress:updateLesson',
+  PROGRESS_GET_VOCAB_COVERAGE: 'progress:getVocabCoverage',
+  PROGRESS_GET_TOTAL_VOCAB_COVERAGE: 'progress:getTotalVocabCoverage',
+  PROGRESS_GET_LESSON_UNLOCK_STATUS: 'progress:getLessonUnlockStatus',
 
   // Dashboard
   DASHBOARD_GET_STATS: 'dashboard:getStats',

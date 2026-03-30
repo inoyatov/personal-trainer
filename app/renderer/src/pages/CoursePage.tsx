@@ -7,6 +7,7 @@ import { EmptyState } from '../components/common/EmptyState';
 import { ErrorMessage } from '../components/common/ErrorMessage';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { useCourses, useModules } from '../hooks/useContentQueries';
+import { useVocabCoverage } from '../hooks/useProgressQueries';
 import { api } from '../lib/api';
 
 export function CoursePage() {
@@ -15,6 +16,7 @@ export function CoursePage() {
   const queryClient = useQueryClient();
   const { data: courses } = useCourses();
   const { data: modules, isLoading, error } = useModules(courseId);
+  const { data: vocabCoverage } = useVocabCoverage(courseId);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
 
   const course = courses?.find((c: any) => c.id === courseId);
@@ -23,6 +25,8 @@ export function CoursePage() {
     if (!deleteTarget) return;
     await api.content.deleteModule(deleteTarget.id);
     queryClient.invalidateQueries({ queryKey: ['modules', courseId] });
+    queryClient.invalidateQueries({ queryKey: ['vocabCoverage'] });
+    queryClient.invalidateQueries({ queryKey: ['totalVocabCoverage'] });
     setDeleteTarget(null);
   };
 
@@ -39,6 +43,53 @@ export function CoursePage() {
 
       {modules && modules.length === 0 && (
         <EmptyState title="No modules yet" description="This course has no modules." />
+      )}
+
+      {/* Vocabulary Coverage */}
+      {vocabCoverage && (
+        <div
+          className="mb-6 rounded-lg border p-4"
+          style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}
+        >
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+              Vocabulary Progress
+            </h3>
+            <span className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+              {vocabCoverage.wordsLearned} / {vocabCoverage.targetWords} words
+            </span>
+          </div>
+          <div
+            className="mb-2 h-3 overflow-hidden rounded-full"
+            style={{ backgroundColor: 'var(--color-bg-tertiary)' }}
+          >
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${vocabCoverage.progressPercent}%`,
+                background: 'linear-gradient(90deg, var(--color-badge-blue), var(--color-success))',
+              }}
+            />
+          </div>
+          <div className="flex gap-4 text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+            <span>Mastered: {vocabCoverage.wordsMastered}</span>
+            <span>Learning: {vocabCoverage.wordsLearned - vocabCoverage.wordsMastered}</span>
+            <span>In course: {vocabCoverage.totalWords}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Unified Learning button */}
+      {courseId && (
+        <div className="mb-6">
+          <button
+            onClick={() => navigate(`/unified/${courseId}`)}
+            className="rounded-lg px-6 py-3 text-sm font-semibold"
+            style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-inverse)' }}
+          >
+            Start Learning
+          </button>
+        </div>
       )}
 
       {modules && modules.length > 0 && courseId && (

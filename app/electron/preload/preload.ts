@@ -36,6 +36,9 @@ const api = {
       id: string;
       sessionId: string;
       exerciseInstanceId: string;
+      exerciseType?: string;
+      sourceEntityType?: string;
+      sourceEntityId?: string;
       userAnswer: string;
       isCorrect: boolean;
       responseTimeMs: number;
@@ -47,6 +50,14 @@ const api = {
       ipcRenderer.invoke('session:getAnswers', { sessionId }),
     getStats: (sessionId: string) =>
       ipcRenderer.invoke('session:getStats', { sessionId }),
+    abandon: (sessionId: string) =>
+      ipcRenderer.invoke('session:abandon', { sessionId }),
+    buildUnified: (data: {
+      courseId: string;
+      mode: 'unified-learning' | 'conjugation-practice';
+      userId?: string;
+      maxItems?: number;
+    }) => ipcRenderer.invoke('session:buildUnified', data),
   },
 
   exercise: {
@@ -121,6 +132,12 @@ const api = {
       writingAttempted?: boolean;
       grammarScore?: number | null;
     }) => ipcRenderer.invoke('progress:updateLesson', data),
+    getVocabCoverage: (courseId: string, userId?: string) =>
+      ipcRenderer.invoke('progress:getVocabCoverage', { courseId, userId }),
+    getTotalVocabCoverage: (userId?: string) =>
+      ipcRenderer.invoke('progress:getTotalVocabCoverage', { userId }),
+    getLessonUnlockStatus: (courseId: string, userId?: string) =>
+      ipcRenderer.invoke('progress:getLessonUnlockStatus', { courseId, userId }),
   },
   dashboard: {
     getStats: () => ipcRenderer.invoke('dashboard:getStats'),
