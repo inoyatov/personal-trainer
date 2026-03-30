@@ -17,15 +17,28 @@ export const migration: Migration = {
   kind: 'transformational',
 
   up(db: Database.Database) {
-    // Add new columns with defaults
-    db.exec(`
-      ALTER TABLE review_states ADD COLUMN learning_step TEXT NOT NULL DEFAULT 'RECOGNITION';
-      ALTER TABLE review_states ADD COLUMN recognition_mastery REAL NOT NULL DEFAULT 0;
-      ALTER TABLE review_states ADD COLUMN recall_mastery REAL NOT NULL DEFAULT 0;
-      ALTER TABLE review_states ADD COLUMN transfer_mastery REAL NOT NULL DEFAULT 0;
-      ALTER TABLE review_states ADD COLUMN consecutive_correct INTEGER NOT NULL DEFAULT 0;
-      ALTER TABLE review_states ADD COLUMN consecutive_incorrect INTEGER NOT NULL DEFAULT 0;
-    `);
+    // Check if columns already exist (fresh DBs have them from migrate.ts)
+    const info = db.prepare("PRAGMA table_info('review_states')").all() as Array<{ name: string }>;
+    const existing = new Set(info.map((c) => c.name));
+
+    if (!existing.has('learning_step')) {
+      db.exec(`ALTER TABLE review_states ADD COLUMN learning_step TEXT NOT NULL DEFAULT 'RECOGNITION'`);
+    }
+    if (!existing.has('recognition_mastery')) {
+      db.exec(`ALTER TABLE review_states ADD COLUMN recognition_mastery REAL NOT NULL DEFAULT 0`);
+    }
+    if (!existing.has('recall_mastery')) {
+      db.exec(`ALTER TABLE review_states ADD COLUMN recall_mastery REAL NOT NULL DEFAULT 0`);
+    }
+    if (!existing.has('transfer_mastery')) {
+      db.exec(`ALTER TABLE review_states ADD COLUMN transfer_mastery REAL NOT NULL DEFAULT 0`);
+    }
+    if (!existing.has('consecutive_correct')) {
+      db.exec(`ALTER TABLE review_states ADD COLUMN consecutive_correct INTEGER NOT NULL DEFAULT 0`);
+    }
+    if (!existing.has('consecutive_incorrect')) {
+      db.exec(`ALTER TABLE review_states ADD COLUMN consecutive_incorrect INTEGER NOT NULL DEFAULT 0`);
+    }
 
     // Backfill based on current_stage
     // automated/stable: high mastery in all dimensions

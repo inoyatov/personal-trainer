@@ -14,10 +14,15 @@ export const migration: Migration = {
   kind: 'additive',
 
   up(db: Database.Database) {
-    db.exec(`
-      ALTER TABLE session_answers ADD COLUMN confidence INTEGER NOT NULL DEFAULT 1;
-      ALTER TABLE session_answers ADD COLUMN attempt_count INTEGER NOT NULL DEFAULT 1;
-    `);
+    const info = db.prepare("PRAGMA table_info('session_answers')").all() as Array<{ name: string }>;
+    const existing = new Set(info.map((c) => c.name));
+
+    if (!existing.has('confidence')) {
+      db.exec(`ALTER TABLE session_answers ADD COLUMN confidence INTEGER NOT NULL DEFAULT 1`);
+    }
+    if (!existing.has('attempt_count')) {
+      db.exec(`ALTER TABLE session_answers ADD COLUMN attempt_count INTEGER NOT NULL DEFAULT 1`);
+    }
   },
 
   validate(db: Database.Database) {
