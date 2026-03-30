@@ -111,6 +111,20 @@ npm run make
 
 Builds platform-specific installers (macOS .zip, Windows .exe, Linux .deb/.rpm).
 
+### Install from Release (macOS)
+
+1. Download `Personal Trainer-darwin-arm64-*.zip` from [Releases](https://github.com/inoyatov/personal-trainer/releases)
+2. Extract the zip
+3. **Important**: The app is not code-signed, so macOS Gatekeeper will block it. Remove the quarantine attribute before opening:
+
+```bash
+xattr -cr "Personal Trainer.app"
+```
+
+4. Double-click `Personal Trainer.app` to launch
+
+> **Note**: The `xattr -cr` command must be run from the directory where you extracted the app, or provide the full path. This is only needed once per download.
+
 ## Content
 
 ### Seed Data
