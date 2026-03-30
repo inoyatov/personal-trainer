@@ -1,15 +1,21 @@
-import { ipcMain, dialog } from 'electron';
+import { ipcMain, dialog, app } from 'electron';
 import fs from 'node:fs';
+import path from 'node:path';
 import { Channels } from '../../../shared/contracts/channels';
 import type { AppDatabase } from '../../../backend/db/index';
 import { importContentPack } from '../../../backend/import/contentPackImporter';
 import { importLesson } from '../../../backend/import/lessonImporter';
 import { exportCourse, exportLesson } from '../../../backend/export/contentPackExporter';
 
+function getContentPacksDir(): string {
+  return path.join(app.getPath('home'), '.personal-trainer', 'content-packs');
+}
+
 export function registerImportExportHandlers(db: AppDatabase) {
   ipcMain.handle(Channels.IMPORT_CONTENT_PACK, async () => {
     const result = await dialog.showOpenDialog({
       title: 'Import Content Pack',
+      defaultPath: getContentPacksDir(),
       filters: [{ name: 'JSON Content Pack', extensions: ['json'] }],
       properties: ['openFile'],
     });
@@ -37,6 +43,7 @@ export function registerImportExportHandlers(db: AppDatabase) {
     async (_event, data: { moduleId: string }) => {
       const result = await dialog.showOpenDialog({
         title: 'Import Lesson',
+        defaultPath: getContentPacksDir(),
         filters: [{ name: 'JSON Lesson Pack', extensions: ['json'] }],
         properties: ['openFile'],
       });
@@ -73,7 +80,10 @@ export function registerImportExportHandlers(db: AppDatabase) {
 
       const result = await dialog.showSaveDialog({
         title: 'Export Content Pack',
-        defaultPath: `${pack.manifest.name.replace(/[^a-zA-Z0-9]/g, '_')}.json`,
+        defaultPath: path.join(
+          getContentPacksDir(),
+          `${pack.manifest.name.replace(/[^a-zA-Z0-9]/g, '_')}.json`,
+        ),
         filters: [{ name: 'JSON Content Pack', extensions: ['json'] }],
       });
 

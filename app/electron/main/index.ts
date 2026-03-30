@@ -14,9 +14,19 @@ if (started) {
 
 const isDev = !!MAIN_WINDOW_VITE_DEV_SERVER_URL;
 
+function getAppDataDir(): string {
+  const homeDir = app.getPath('home');
+  const appDir = path.join(homeDir, '.personal-trainer');
+  const fs = require('fs');
+  if (!fs.existsSync(appDir)) {
+    fs.mkdirSync(appDir, { recursive: true });
+  }
+  return appDir;
+}
+
 function initializeDatabase() {
-  const userDataPath = app.getPath('userData');
-  const dbPath = path.join(userDataPath, 'personal-trainer.db');
+  const appDir = getAppDataDir();
+  const dbPath = path.join(appDir, 'personal-trainer.db');
   const sqliteDb = new Database(dbPath);
   sqliteDb.pragma('journal_mode = WAL');
   sqliteDb.pragma('foreign_keys = ON');
@@ -68,9 +78,28 @@ const createWindow = () => {
   }
 };
 
+function initializeContentPacks() {
+  const fs = require('fs');
+  const appDir = getAppDataDir();
+  const packsDir = path.join(appDir, 'content-packs');
+  if (!fs.existsSync(packsDir)) {
+    fs.mkdirSync(packsDir, { recursive: true });
+  }
+  // Copy sample packs on first run
+  const readmeFile = path.join(packsDir, 'README.txt');
+  if (!fs.existsSync(readmeFile)) {
+    fs.writeFileSync(
+      readmeFile,
+      'Place JSON content pack files here.\nUse "Import Content Pack" or "Import Lesson" in the app to load them.\nSee docs/lesson-generation-prompt.md for the JSON format.\n',
+      'utf-8',
+    );
+  }
+}
+
 app.on('ready', () => {
   const db = initializeDatabase();
   seedIfEmpty(db);
+  initializeContentPacks();
   registerAllHandlers(db);
   createWindow();
 });
