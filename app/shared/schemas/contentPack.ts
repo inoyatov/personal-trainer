@@ -6,7 +6,7 @@ export const courseSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
   description: z.string().default(''),
-  targetLevel: z.string().min(1),
+  targetLevel: z.string().default('A2'),
   languageCode: z.string().default('nl'),
   version: z.string().default('1.0'),
 });

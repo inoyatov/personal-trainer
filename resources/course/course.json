@@ -1,0 +1,65 @@
+{
+  "manifest": {
+    "name": "Dutch A2 Inburgering Course",
+    "version": "1.0",
+    "description": "Complete A2 Dutch course for inburgering exam preparation",
+    "author": "ChatGPT"
+  },
+  "courses": [
+    {
+      "id": "course-dutch-a2-inburgering",
+      "title": "Dutch A2 Inburgering",
+      "description": "Prepare for the Dutch naturalization exam (A2 level)"
+    }
+  ],
+  "modules": [
+    {
+      "id": "mod-introduction",
+      "courseId": "course-dutch-a2-inburgering",
+      "title": "Kennismaken (Introduction)",
+      "orderIndex": 0
+    },
+    {
+      "id": "mod-daily-life",
+      "courseId": "course-dutch-a2-inburgering",
+      "title": "Dagelijks leven (Daily Life)",
+      "orderIndex": 1
+    },
+    {
+      "id": "mod-shopping",
+      "courseId": "course-dutch-a2-inburgering",
+      "title": "Winkelen (Shopping)",
+      "orderIndex": 2
+    },
+    {
+      "id": "mod-health",
+      "courseId": "course-dutch-a2-inburgering",
+      "title": "Gezondheid (Health)",
+      "orderIndex": 3
+    },
+    {
+      "id": "mod-work",
+      "courseId": "course-dutch-a2-inburgering",
+      "title": "Werk en studie (Work & Study)",
+      "orderIndex": 4
+    },
+    {
+      "id": "mod-government",
+      "courseId": "course-dutch-a2-inburgering",
+      "title": "Overheid (Government)",
+      "orderIndex": 5
+    },
+    {
+      "id": "mod-housing",
+      "courseId": "course-dutch-a2-inburgering",
+      "title": "Wonen (Housing)",
+      "orderIndex": 6
+    },
+    {
+      "id": "mod-transport",
+      "courseId": "course-dutch-a2-inburgering",
+      "title": "Vervoer (Transport)",
+      "orderIndex": 7
+    }
+  ]
+}
