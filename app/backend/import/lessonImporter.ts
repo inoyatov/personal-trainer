@@ -4,6 +4,7 @@ import { lessons, classGroups } from '../db/schema/courses';
 import { vocabularyItems, sentenceItems, dialogs, dialogTurns } from '../db/schema/content';
 import { grammarPatterns } from '../db/schema/grammar';
 import { writingPrompts } from '../db/schema/writing';
+import { verbs, verbConjugationSets, verbConjugationForms, lessonVerbs, sentenceVerbs } from '../db/schema/verbs';
 import { sql, eq } from 'drizzle-orm';
 
 export interface LessonImportResult {
@@ -17,6 +18,11 @@ export interface LessonImportResult {
     dialogTurns: number;
     grammarPatterns: number;
     writingPrompts: number;
+    verbs: number;
+    verbConjugationSets: number;
+    verbConjugationForms: number;
+    lessonVerbs: number;
+    sentenceVerbs: number;
   };
   errors: string[];
 }
@@ -128,6 +134,40 @@ export function importLesson(
       counts.writingPrompts++;
     }
 
+    // Verb entities
+    for (const v of pack.verbs) {
+      upsert(verbs, verbs.id, v);
+      counts.verbs++;
+    }
+
+    for (const vcs of pack.verbConjugationSets) {
+      upsert(verbConjugationSets, verbConjugationSets.id, vcs);
+      counts.verbConjugationSets++;
+    }
+
+    for (const vcf of pack.verbConjugationForms) {
+      upsert(verbConjugationForms, verbConjugationForms.id, vcf as any);
+      counts.verbConjugationForms++;
+    }
+
+    for (const lv of pack.lessonVerbs) {
+      const rec = sanitizeRecord(lv as any);
+      db.delete(lessonVerbs)
+        .where(sql`lesson_id = ${rec.lessonId} AND verb_id = ${rec.verbId}`)
+        .run();
+      db.insert(lessonVerbs).values(rec).run();
+      counts.lessonVerbs++;
+    }
+
+    for (const sv of pack.sentenceVerbs) {
+      const rec = sanitizeRecord(sv as any);
+      db.delete(sentenceVerbs)
+        .where(sql`sentence_id = ${rec.sentenceId} AND verb_id = ${rec.verbId} AND surface_form = ${rec.surfaceForm}`)
+        .run();
+      db.insert(sentenceVerbs).values(rec).run();
+      counts.sentenceVerbs++;
+    }
+
     db.run(sql`COMMIT`);
 
     return { success: true, lessonId, counts, errors: [] };
@@ -153,5 +193,10 @@ function emptyCounts(): LessonImportResult['counts'] {
     dialogTurns: 0,
     grammarPatterns: 0,
     writingPrompts: 0,
+    verbs: 0,
+    verbConjugationSets: 0,
+    verbConjugationForms: 0,
+    lessonVerbs: 0,
+    sentenceVerbs: 0,
   };
 }

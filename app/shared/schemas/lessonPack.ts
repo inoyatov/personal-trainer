@@ -8,6 +8,11 @@ import {
   dialogTurnSchema,
   grammarPatternSchema,
   writingPromptSchema,
+  verbSchema,
+  verbConjugationSetSchema,
+  verbConjugationFormSchema,
+  lessonVerbSchema,
+  sentenceVerbSchema,
 } from './contentPack';
 
 /**
@@ -24,6 +29,11 @@ export const lessonPackSchema = z.object({
   dialogTurns: z.array(dialogTurnSchema).default([]),
   grammarPatterns: z.array(grammarPatternSchema).default([]),
   writingPrompts: z.array(writingPromptSchema).default([]),
+  verbs: z.array(verbSchema).default([]),
+  verbConjugationSets: z.array(verbConjugationSetSchema).default([]),
+  verbConjugationForms: z.array(verbConjugationFormSchema).default([]),
+  lessonVerbs: z.array(lessonVerbSchema).default([]),
+  sentenceVerbs: z.array(sentenceVerbSchema).default([]),
 });
 
 export type LessonPack = z.infer<typeof lessonPackSchema>;
